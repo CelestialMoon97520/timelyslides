@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeepSeek-V4 · 开源大模型的新标杆</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ═════ ROOT ═════ */
+:root {
+  --bg: #0a0e17; --surface: #111827; --surface2: #1a2332;
+  --text: #e2e8f0; --muted: #7c8aa0;
+  --accent: #38bdf8; --accent2: #2dd4bf; --amber: #f59e0b;
+  --green: #4ade80; --red: #f87171;
+  --glass: rgba(255,255,255,.03); --glass-border: rgba(255,255,255,.06);
+}
+* { margin:0; padding:0; box-sizing:border-box }
+body {
+  font-family:'Inter','Noto Sans SC',sans-serif;
+  background:var(--bg); color:var(--text);
+  overflow:hidden; -webkit-font-smoothing:antialiased;
+}
+
+/* ═════ SLIDE ENGINE ═════ */
+.slide {
+  position:fixed; inset:0;
+  overflow-y:auto; overflow-x:hidden;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:3rem 2rem;
+  opacity:0; pointer-events:none; transition:opacity .4s ease;
+  background:var(--bg);
+  scrollbar-width:thin; scrollbar-color:var(--surface2) transparent;
+}
+.slide.on { opacity:1; pointer-events:auto }
+.slide.surface { background:var(--surface) }
+.slide > .wrap { width:100%; max-width:1050px }
+
+/* ═════ NAV ═════ */
+#dots { position:fixed; right:18px; top:50%; transform:translateY(-50%); z-index:999;
+  display:flex; flex-direction:column; gap:8px }
+#dots span { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.15);
+  cursor:pointer; transition:all .3s }
+#dots span.on { background:var(--accent); box-shadow:0 0 10px rgba(56,189,248,.4); width:20px; border-radius:4px }
+#bar { position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--accent),var(--accent2));
+  z-index:999; transition:width .35s ease; border-radius:0 2px 2px 0 }
+
+/* ═════ HERO SLIDE ═════ */
+.hero-bg { position:absolute; inset:0;
+  background:radial-gradient(ellipse 80% 60% at 30% 50%, rgba(56,189,248,.08) 0%, transparent 60%),
+             radial-gradient(ellipse 60% 80% at 70% 40%, rgba(45,212,191,.05) 0%, transparent 60%),
+             linear-gradient(135deg,#0c4a6e 0%,#0f172a 50%,#1e1b4b 100%); }
+.hero-grid { position:absolute; inset:0; opacity:.025;
+  background-image:linear-gradient(rgba(255,255,255,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.3) 1px,transparent 1px);
+  background-size:80px 80px }
+.hero-content { position:relative; z-index:2; text-align:center }
+.hero-badge { display:inline-block; padding:5px 16px; border-radius:99px;
+  border:1px solid rgba(56,189,248,.25); font-size:.75rem; letter-spacing:.2em;
+  color:var(--accent); margin-bottom:1.8rem; font-weight:500 }
+.hero-title { font-family:'Noto Serif SC',Georgia,serif;
+  font-size:clamp(2rem,6vw,4.8rem); font-weight:900; line-height:1.15;
+  background:linear-gradient(180deg,#fff 0%,#94a3b8 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:.3em }
+.hero-title em { font-style:normal; display:block; font-size:.42em; font-weight:500;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.hero-stats { display:flex; gap:2.5rem; justify-content:center; margin-top:2rem; flex-wrap:wrap }
+.hero-stat { text-align:center }
+.hero-stat .val { font-size:2.2rem; font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.hero-stat .lbl { font-size:.72rem; color:var(--muted); margin-top:4px }
+.hero-scroll { color:var(--muted); font-size:.78rem; margin-top:2rem }
+
+/* ═════ TYPOGRAPHY ═════ */
+.label { font-size:.72rem; letter-spacing:.22em; color:var(--accent); text-transform:uppercase; margin-bottom:.8rem; font-weight:600 }
+.title { font-family:'Noto Serif SC',Georgia,serif; font-size:clamp(1.6rem,3.5vw,2.4rem); font-weight:700; margin-bottom:.5rem }
+.sub { color:var(--muted); font-size:.95rem; max-width:600px; margin-bottom:2rem }
+.p { color:var(--muted); line-height:1.9; font-size:.9rem }
+.p strong { color:#fff }
+
+/* ═════ CARDS ═════ */
+.grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.2rem }
+.grid3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1rem }
+.grid4 { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:.9rem }
+.card { background:var(--glass); border:1px solid var(--glass-border); border-radius:14px; padding:1.8rem }
+.card h3 { font-size:1.05rem; margin-bottom:.4rem; font-weight:600 }
+.card .p { font-size:.84rem; line-height:1.65 }
+.card-top { border-top:3px solid var(--accent) }
+.card-left { border-left:3px solid var(--accent) }
+.card-stat { margin-top:1rem; padding-top:.8rem; border-top:1px solid var(--glass-border) }
+.card-stat .big { font-size:1.8rem; font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.card-stat .tiny { font-size:.68rem; color:var(--muted) }
+
+/* ═════ STAT STRIP ═════ */
+.stat-strip { display:flex; justify-content:center; gap:2.5rem; flex-wrap:wrap;
+  padding:2rem; background:var(--surface); border-radius:14px; margin:1.5rem 0 }
+.stat-item { text-align:center }
+.stat-item .num { font-size:2.4rem; font-weight:900;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.stat-item .num.g { background:linear-gradient(135deg,var(--green),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.stat-item .num.o { background:linear-gradient(135deg,var(--amber),var(--red)); -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.stat-item .lbl { font-size:.75rem; color:var(--muted); margin-top:4px }
+
+/* ═════ BARS ═════ */
+.bar-chart { display:flex; flex-direction:column; gap:10px; margin:1.5rem 0 }
+.bar-row { display:flex; align-items:center; gap:12px }
+.bar-label { width:160px; text-align:right; font-size:.8rem; color:var(--muted); flex-shrink:0 }
+.bar-track { flex:1; height:26px; background:var(--surface2); border-radius:6px; overflow:hidden }
+.bar-fill { height:100%; border-radius:6px; transition:width 1.5s ease }
+.bar-val { width:70px; font-size:.78rem; font-weight:600; flex-shrink:0; font-variant-numeric:tabular-nums }
+
+/* ═════ TABLE ═════ */
+.tbl-wrap { overflow-x:auto; margin:1.2rem 0; border-radius:10px; border:1px solid var(--glass-border) }
+.tbl { width:100%; border-collapse:collapse; font-size:.84rem }
+.tbl th { background:var(--surface2); color:var(--accent); padding:11px 16px; text-align:left; font-weight:600; font-size:.75rem; letter-spacing:.04em; text-transform:uppercase }
+.tbl td { padding:10px 16px; border-bottom:1px solid var(--glass-border); color:var(--text) }
+.tbl tr:last-child td { border-bottom:none }
+
+/* ═════ TWO COLUMN ═════ */
+.col2 { display:grid; grid-template-columns:1fr 1fr; gap:2.5rem; align-items:center }
+@media(max-width:768px) { .col2{grid-template-columns:1fr} }
+
+/* ═════ TIER ═════ */
+.tier-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--glass-border); font-size:.84rem }
+.tier-tag { padding:3px 10px; border-radius:4px; font-size:.68rem; font-weight:700; color:#000; min-width:36px; text-align:center }
+.tier-row:last-child { border-bottom:none }
+
+/* ═════ ADVANTAGES / LIMITATIONS ═════ */
+.adv-row { display:flex; align-items:center; gap:16px; background:var(--glass); border:1px solid var(--glass-border);
+  border-radius:12px; padding:1.2rem 1.6rem; margin-bottom:.7rem }
+.adv-num { width:30px; height:30px; border-radius:6px; background:var(--green);
+  display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:#000; flex-shrink:0 }
+.adv-text { font-size:.95rem }
+.limit-row { display:flex; gap:24px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.05); font-size:.84rem }
+.limit-row h4 { color:var(--red); min-width:160px; font-size:.9rem }
+.limit-row .p { flex:1 }
+
+/* ═════ OUTRO ═════ */
+.outro-grid { display:grid; grid-template-columns:1fr 1px 1fr; gap:2rem; align-items:start }
+.outro-col h3 { color:var(--amber); margin-bottom:1rem; font-size:1.1rem }
+.outro-divider { background:rgba(100,116,139,.2); align-self:stretch }
+.outro-col .p { line-height:2; font-size:.84rem }
+
+/* ═════ FOOTER ═════ */
+.foot { text-align:center; color:var(--muted); font-size:.8rem; padding:4rem 0 2rem }
+.foot strong { color:var(--accent) }
+</style>
+</head>
+<body>
+
+<div id="bar"></div><div id="dots"></div>
+
+<!-- ═══ 1: HERO ═══ -->
+<div class="slide on" id="s1">
+  <div class="hero-bg"></div><div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">2026 · DEEPSEEK</div>
+    <h1 class="hero-title">DeepSeek-V4<em>开源大语言模型的新标杆</em></h1>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val">1.6T</div><div class="lbl">MoE 总参数</div></div>
+      <div class="hero-stat"><div class="val">1M</div><div class="lbl">原生上下文</div></div>
+      <div class="hero-stat"><div class="val">MIT</div><div class="lbl">开源协议</div></div>
+    </div>
+    <div class="hero-scroll">按 → 开始</div>
+  </div>
+</div>
+
+<!-- ═══ 2: WHY ═══ -->
+<div class="slide" id="s2">
+  <div class="wrap">
+    <div class="label">01 · 背景</div>
+    <h2 class="title">为什么 DeepSeek-V4 值得关注</h2>
+    <p class="sub">2026年4月24日正式发布，面向Agent时代的开源基础设施。</p>
+    <div class="col2">
+      <div class="p">
+        这不是一次普通的版本迭代。V4系列包含 <strong>Pro</strong>（1.6T参数旗舰）和 <strong>Flash</strong>（284B轻量高效）两个版本。<br><br>
+        核心战略只有一句话：<strong>极致注意力成本重构 × 超长上下文标配化</strong>。<br><br>
+        Flash版采用MIT许可——可商用、可自部署、可微调。不是"开放权重"的文字游戏。
+      </div>
+      <div class="stat-strip" style="flex-direction:column;align-items:center;gap:1.2rem;margin:0">
+        <div class="stat-item"><div class="num">1.6T</div><div class="lbl">Pro 总参数量</div></div>
+        <div class="stat-item"><div class="num g">49B</div><div class="lbl">激活参数（仅3%）</div></div>
+        <div class="stat-item"><div class="num o">33T+</div><div class="lbl">预训练 Token 量</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 3: COST ═══ -->
+<div class="slide surface" id="s3">
+  <div class="wrap">
+    <div class="label">02 · 成本</div>
+    <h2 class="title">把大模型从奢侈品打成日用品</h2>
+    <p class="sub">V4-Pro 比 GPT-5.5 便宜 34 倍，提供 90-95% 的性能。</p>
+    <div class="bar-chart">
+      <div class="bar-row"><div class="bar-label">V4-Flash 缓存命中</div><div class="bar-track"><div class="bar-fill" style="width:0.1%;background:var(--accent2)"></div></div><div class="bar-val" style="color:var(--accent2)">$0.028</div></div>
+      <div class="bar-row"><div class="bar-label">V4-Pro</div><div class="bar-track"><div class="bar-fill" style="width:2.9%;background:var(--accent)"></div></div><div class="bar-val" style="color:var(--accent)">$0.87</div></div>
+      <div class="bar-row"><div class="bar-label">GPT-5.4</div><div class="bar-track"><div class="bar-fill" style="width:50%;background:#64748b"></div></div><div class="bar-val">$15.00</div></div>
+      <div class="bar-row"><div class="bar-label">Claude Opus 4.8</div><div class="bar-track"><div class="bar-fill" style="width:83%;background:#64748b"></div></div><div class="bar-val">$25.00</div></div>
+      <div class="bar-row"><div class="bar-label">GPT-5.5</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#475569"></div></div><div class="bar-val">$30.00</div></div>
+    </div>
+    <div class="stat-strip">
+      <div class="stat-item"><div class="num g">34x</div><div class="lbl">比 GPT-5.5 便宜</div></div>
+      <div class="stat-item"><div class="num">90-95%</div><div class="lbl">性能保留率</div></div>
+      <div class="stat-item"><div class="num o">100x+</div><div class="lbl">Flash 缓存成本优势</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 4: ATTENTION ═══ -->
+<div class="slide" id="s4">
+  <div class="wrap">
+    <div class="label">03 · 架构</div>
+    <h2 class="title">混合注意力：百万上下文的核心引擎</h2>
+    <p class="sub">CSA + HCA 双轨制将计算量与缓存压缩到极致。</p>
+    <div class="grid2">
+      <div class="card card-top" style="border-top-color:var(--accent)">
+        <h3>⊞ CSA · 压缩稀疏注意力</h3>
+        <p class="p">每4个Token压缩为1条摘要。查询仅从Top-K选取计算。融合滑动窗口保留局部精确度。</p>
+        <div class="card-stat"><div class="big">-90%</div><div class="tiny">KV 缓存占用 vs V3.2</div></div>
+      </div>
+      <div class="card card-top" style="border-top-color:var(--accent2)">
+        <h3>⊡ HCA · 重度压缩注意力</h3>
+        <p class="p">128倍压缩率激进合并Token，对所有摘要做稠密全局注意力。捕捉跨段落宏观语义。</p>
+        <div class="card-stat"><div class="big">128×</div><div class="tiny">Token 压缩倍率</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 5: MOE INNOVATIONS ═══ -->
+<div class="slide" id="s5">
+  <div class="wrap">
+    <div class="label">04 · 算子</div>
+    <h2 class="title">四个被低估的底层创新</h2>
+    <p class="sub">1.6T参数不是堆出来的。每次推理只激活49B。</p>
+    <div class="grid4">
+      <div class="card"><h3>Hash 路由</h3><p class="p">确定性词汇→专家映射，替代softmax概率路由，消除路由不确定性，延迟可预测。</p></div>
+      <div class="card"><h3>mHC 超连接</h3><p class="p">映射矩阵约束在双随机矩阵流形上（Sinkhorn迭代），深层信号不衰减不爆炸。</p></div>
+      <div class="card"><h3>Muon 优化器</h3><p class="p">梯度矩阵近似正交化（Newton-Schulz），收敛更快更稳，替代大部分AdamW。</p></div>
+      <div class="card"><h3>FP4 量化</h3><p class="p">MoE权重直接对齐华为昇腾950PR原生精度。不是"支持"，是"原生匹配"。</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 6: TRAINING ═══ -->
+<div class="slide surface" id="s6">
+  <div class="wrap">
+    <div class="label">05 · 训练</div>
+    <h2 class="title">在策略蒸馏：不让任何一个专家白训练</h2>
+    <p class="sub">从V3.2的「混合强化学习」升级为两阶段OPD。</p>
+    <div class="grid2">
+      <div class="card card-left" style="border-left-color:var(--accent)">
+        <h3>① 分头训练领域专家</h3>
+        <p class="p">数学、代码、Agent、指令遵循——各自独立SFT+GRPO专项优化。管数学的不管代码，彻底消除能力冲突。</p>
+      </div>
+      <div class="card card-left" style="border-left-color:var(--accent2)">
+        <h3>② 在线策略蒸馏整合</h3>
+        <p class="p">十多个专家能力不是"平均"，而是通过在线蒸馏无缝融合到一个统一学生模型。你感受到的多面手能力，就是这么来的。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 7: BENCHMARKS ═══ -->
+<div class="slide" id="s7">
+  <div class="wrap">
+    <div class="label">06 · 基准</div>
+    <h2 class="title">代码与推理：开源最强，直逼闭源</h2>
+    <div class="stat-strip">
+      <div class="stat-item"><div class="num">3206</div><div class="lbl">Codeforces Elo · 业界最高</div></div>
+      <div class="stat-item"><div class="num g">93.5%</div><div class="lbl">LiveCodeBench</div></div>
+      <div class="stat-item"><div class="num">90.1%</div><div class="lbl">GPQA Diamond</div></div>
+      <div class="stat-item"><div class="num o">95.2%</div><div class="lbl">HMMT 数学竞赛</div></div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>基准测试</th><th>V4-Pro Max</th><th>GPT-5.4/5.5</th><th>Claude Opus 4.6</th></tr></thead>
+        <tbody>
+          <tr><td>SWE-bench Verified</td><td>80.6%</td><td>~88.7%</td><td>87.6%</td></tr>
+          <tr><td>SWE-bench Pro（防污染）</td><td style="color:var(--red)">55.4%</td><td>82.6%</td><td>82.0%</td></tr>
+          <tr><td>MMLU-Pro</td><td>87.5%</td><td>—</td><td>89.1%</td></tr>
+          <tr><td>VMRRB 推理</td><td style="color:var(--accent2)">79.1%</td><td>68.0%</td><td>75.2%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:var(--red);font-size:.75rem;margin-top:.4rem">⚠ SWE-bench Verified→Pro 掉25pp：暗示训练数据可能与被评测基准重叠</p>
+  </div>
+</div>
+
+<!-- ═══ 8: AGENT ═══ -->
+<div class="slide" id="s8">
+  <div class="wrap">
+    <div class="label">07 · Agent</div>
+    <h2 class="title">这是为 Agent 而生的模型</h2>
+    <p class="sub">不只是会说——会调用工具、操作终端、自主完成任务。</p>
+    <div class="grid3">
+      <div class="card"><h3>📡 XML 工具调用</h3><p class="p">弃用JSON，改用带特殊Token的XML结构。减少转义错误，提升工具调用的机械可靠性。</p></div>
+      <div class="card"><h3>🎯 BrowseComp 83.4</h3><p class="p">「优于Sonnet 4.5，接近Opus 4.6非思考模式」——官方原话。</p></div>
+      <div class="card"><h3>⌨️ Terminal Bench 67.9</h3><p class="p">命令行操作基准。能做，但复杂多步任务累积错误是当前最大瓶颈。</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 9: HARDWARE ═══ -->
+<div class="slide surface" id="s9">
+  <div class="wrap">
+    <div class="label">08 · 硬件</div>
+    <h2 class="title">华为昇腾 × DeepSeek：国产硬件的成人礼</h2>
+    <p class="sub">技术报告首次将昇腾与英伟达并列写入硬件验证清单。</p>
+    <div class="grid2">
+      <div class="card">
+        <h3>🇨🇳 昇腾全系列适配</h3>
+        <p class="p">最新昇腾950/950PR原生支持FP4精度。Iluvatar GPU全面支持。不是"也能跑"，是"设计时就在一起"。</p>
+      </div>
+      <div class="card">
+        <h3>📈 能力层级定位</h3>
+        <div style="margin-top:1rem">
+          <div class="tier-row"><span class="tier-tag" style="background:var(--amber)">S</span> Claude Fable 5 · Mythos Preview</div>
+          <div class="tier-row"><span class="tier-tag" style="background:var(--accent)">A</span> Opus 4.8 · GPT-5.5 · Gemini 3.1</div>
+          <div class="tier-row" style="font-weight:600"><span class="tier-tag" style="background:var(--accent2)">A-</span> <strong>DeepSeek V4-Pro ⬅</strong></div>
+          <div class="tier-row"><span class="tier-tag" style="background:var(--muted)">B</span> V4-Flash · Qwen3.7 · MiniMax M3</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 10: ADVANTAGES ═══ -->
+<div class="slide" id="s10">
+  <div class="wrap">
+    <div class="label">09 · 优势</div>
+    <h2 class="title">五张牌</h2>
+    <div style="margin-top:1.5rem">
+      <div class="adv-row"><span class="adv-num">1</span><span class="adv-text"><strong>极致性价比</strong> — 输出价格比GPT-5.5便宜34倍，保留90-95%性能</span></div>
+      <div class="adv-row"><span class="adv-num">2</span><span class="adv-text"><strong>MIT真开源</strong> — 可商用、可微调、可自托管。AI民主化的基础设施</span></div>
+      <div class="adv-row"><span class="adv-num">3</span><span class="adv-text"><strong>百万上下文可用</strong> — CSA/HCA让它不是噱头。1M tokens实测可用</span></div>
+      <div class="adv-row"><span class="adv-num">4</span><span class="adv-text"><strong>国产硬件深度适配</strong> — FP4原生对齐昇腾，摆脱英伟达单一生态依赖</span></div>
+      <div class="adv-row"><span class="adv-num">5</span><span class="adv-text"><strong>代码推理的无声革命</strong> — Codeforces 3206分，改变无数人写代码的方式</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 11: LIMITATIONS ═══ -->
+<div class="slide" id="s11">
+  <div class="wrap">
+    <div class="label">10 · 诚实</div>
+    <h2 class="title">五道坎</h2>
+    <p class="sub">好归好，不说缺点的是广告。</p>
+    <div class="grid2" style="margin-top:.5rem">
+      <div class="card card-left" style="border-left-color:var(--red)"><h3 style="color:var(--red)">纯文本模型</h3><p class="p">不支持图像、音频、视频。GPT-5.5等已原生多模态。V4最显著的能力缺口。</p></div>
+      <div class="card card-left" style="border-left-color:var(--red)"><h3 style="color:var(--red)">幻觉率94-96%</h3><p class="p">比V3.2更高。在高事实性场景（医疗、法律、金融）必须谨慎。</p></div>
+      <div class="card card-left" style="border-left-color:var(--amber)"><h3 style="color:var(--amber)">知识密集型偏弱</h3><p class="p">SimpleQA、MMLU落后前沿闭源。官方坦承滞后3-6个月。</p></div>
+      <div class="card card-left" style="border-left-color:var(--amber)"><h3 style="color:var(--amber)">基准污染疑虑</h3><p class="p">SWE-bench掉25pp。学会了能力还是记住了答案？</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 12: OUTRO ═══ -->
+<div class="slide" id="s12">
+  <div class="hero-bg"></div>
+  <div class="wrap" style="position:relative;z-index:2">
+    <h2 class="title" style="font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:2rem">这场竞赛才刚开始</h2>
+    <div class="outro-grid">
+      <div class="outro-col">
+        <h3>📌 核心结论</h3>
+        <p class="p">最强开源大语言模型，代码/数学推理达到甚至超越闭源前沿。<br><br>1.6T MoE + 混合注意力实现百万Token上下文高效处理。<br><br>极致性价比正在重塑AI经济模型。</p>
+      </div>
+      <div class="outro-divider"></div>
+      <div class="outro-col">
+        <h3>🔮 未来展望</h3>
+        <p class="p">2026下半年：昇腾950超节点量产，Pro版大幅降价。<br><br>下一代或将引入多模态能力。<br><br>Agent时代基础设施：极致上下文成本+开源生态。</p>
+      </div>
+    </div>
+    <div class="stat-strip" style="margin-top:2rem">
+      <div class="stat-item"><div class="val">开源</div><div class="lbl">没有围墙的基础设施</div></div>
+      <div class="stat-item"><div class="val o" style="background:linear-gradient(135deg,var(--amber),var(--red));-webkit-background-clip:text;-webkit-text-fill-color:transparent">3-6月</div><div class="lbl">与闭源前沿的差距</div></div>
+      <div class="stat-item"><div class="val" style="background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent">2026</div><div class="lbl">规模化部署元年</div></div>
+    </div>
+    <div class="foot">谢谢 &nbsp;·&nbsp; Powered by <strong>DeepSeek-V4</strong> &nbsp;·&nbsp; 2026.06</div>
+  </div>
+</div>
+
+<!-- ═══════ ENGINE ═══════ -->
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+const dotsEl = document.getElementById('dots');
+const bar = document.getElementById('bar');
+let idx = 0, lock = false;
+
+// Build dots
+for (let i = 0; i < total; i++) {
+  const d = document.createElement('span');
+  d.addEventListener('click', () => go(i));
+  dotsEl.appendChild(d);
+}
+const dots = dotsEl.querySelectorAll('span');
+
+function go(i) {
+  if (i < 0 || i >= total || lock) return;
+  lock = true;
+  slides.forEach((s, j) => { s.classList.toggle('on', j === i); if (j === i) s.scrollTop = 0; });
+  dots.forEach((d, j) => d.classList.toggle('on', j === i));
+  bar.style.width = ((i + 1) / total * 100) + '%';
+  idx = i;
+  setTimeout(() => lock = false, 400);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(idx + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(idx - 1); }
+  else if (e.key === 'Home') { e.preventDefault(); go(0); }
+  else if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+});
+
+let ty = 0;
+document.addEventListener('touchstart', e => { ty = e.touches[0].clientY }, {passive:true});
+document.addEventListener('touchend', e => {
+  const d = e.changedTouches[0].clientY - ty;
+  if (Math.abs(d) > 40) go(d > 0 ? idx - 1 : idx + 1);
+});
+
+document.addEventListener('wheel', e => {
+  if (lock) return;
+  if (e.deltaY > 20) go(idx + 1);
+  else if (e.deltaY < -20) go(idx - 1);
+}, {passive:true});
+
+// Bar chart animation
+const barObserver = new MutationObserver(() => {
+  const s3 = document.getElementById('s3');
+  if (s3 && s3.classList.contains('on')) {
+    document.querySelectorAll('.bar-fill').forEach(b => { b.style.transition = 'width 1.5s ease' });
+    barObserver.disconnect();
+  }
+});
+slides.forEach(s => barObserver.observe(s, {attributes:true, attributeFilter:['class']}));
+
+// Init
+go(0);
+</script>
+</body>
+</html>
