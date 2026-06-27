@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>鸡兔同笼 · 小学数学</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fffdf7; --surface: #fef3c7; --surface2: #fde68a;
+  --text: #1c1917; --muted: #78716c;
+  --accent: #d97706; --accent2: #ea580c; --amber: #f59e0b;
+  --green: #16a34a; --red: #dc2626;
+  --glass: rgba(0,0,0,.03); --glass-border: rgba(0,0,0,.08);
+}
+* { margin:0; padding:0; box-sizing:border-box }
+body {
+  font-family:'Inter','Noto Sans SC',sans-serif;
+  background:var(--bg); color:var(--text);
+  overflow:hidden; -webkit-font-smoothing:antialiased;
+}
+.slide {
+  position:fixed; inset:0; overflow-y:auto; overflow-x:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:3rem 2rem; opacity:0; pointer-events:none; transition:opacity .4s ease;
+  background:var(--bg);
+}
+.slide.on { opacity:1; pointer-events:auto }
+.slide.surface { background:var(--surface) }
+.slide > .wrap { width:100%; max-width:1050px }
+
+/* Nav */
+#dots { position:fixed; right:18px; top:50%; transform:translateY(-50%); z-index:999; display:flex; flex-direction:column; gap:8px }
+#dots span { width:8px; height:8px; border-radius:50%; background:rgba(0,0,0,.12); cursor:pointer; transition:all .3s }
+#dots span.on { background:var(--accent); box-shadow:0 0 8px rgba(217,119,6,.4); width:20px; border-radius:4px }
+#bar { position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--accent),var(--accent2)); z-index:999; transition:width .35s ease }
+
+/* Typography */
+.label { font-size:.75rem; letter-spacing:.2em; color:var(--accent); text-transform:uppercase; margin-bottom:.8rem; font-weight:600 }
+.title { font-family:'Noto Serif SC',Georgia,serif; font-size:clamp(1.6rem,3.5vw,2.4rem); font-weight:700; margin-bottom:.5rem }
+.sub { color:var(--muted); font-size:.95rem; max-width:600px; margin-bottom:2rem }
+.p { color:var(--muted); line-height:1.9; font-size:.92rem }
+.p strong { color:var(--text) }
+
+/* Hero */
+.hero-bg { position:absolute; inset:0; background:linear-gradient(135deg,#fef3c7 0%,#fffdf7 50%,#fef9c3 100%); }
+.hero-content { position:relative; z-index:2; text-align:center }
+.hero-badge { display:inline-block; padding:5px 16px; border-radius:99px;
+  border:1px solid rgba(217,119,6,.3); font-size:.75rem; letter-spacing:.2em;
+  color:var(--accent); margin-bottom:1.8rem; font-weight:500 }
+.hero-title { font-family:'Noto Serif SC',Georgia,serif;
+  font-size:clamp(2rem,6vw,4rem); font-weight:900; line-height:1.15;
+  color:var(--text); margin-bottom:.3em }
+.hero-title em { font-style:normal; display:block; font-size:.42em; font-weight:500; color:var(--accent) }
+.hero-stats { display:flex; gap:2.5rem; justify-content:center; margin-top:2rem; flex-wrap:wrap }
+.hero-stat { text-align:center }
+.hero-stat .val { font-size:2rem; font-weight:800; color:var(--accent) }
+.hero-stat .lbl { font-size:.72rem; color:var(--muted); margin-top:4px }
+.hero-scroll { color:var(--muted); font-size:.78rem; margin-top:2rem }
+
+/* Cards */
+.grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:1.2rem }
+.grid3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1rem }
+.card { background:var(--glass); border:1px solid var(--glass-border); border-radius:14px; padding:1.8rem }
+.card h3 { font-size:1.1rem; margin-bottom:.4rem; font-weight:600 }
+.card .p { font-size:.86rem; line-height:1.65 }
+.card-top { border-top:3px solid var(--accent) }
+.card-left { border-left:3px solid var(--accent) }
+
+/* Stats */
+.stat-strip { display:flex; justify-content:center; gap:2.5rem; flex-wrap:wrap; padding:2rem; background:var(--surface); border-radius:14px; margin:1.5rem 0 }
+.stat-item { text-align:center }
+.stat-item .num { font-size:2.4rem; font-weight:900; color:var(--accent) }
+
+/* Table */
+.tbl-wrap { overflow-x:auto; margin:1.2rem 0; border-radius:10px; border:1px solid var(--glass-border) }
+.tbl { width:100%; border-collapse:collapse; font-size:.86rem }
+.tbl th { background:var(--surface2); color:var(--accent); padding:11px 16px; text-align:left; font-weight:600; font-size:.75rem; letter-spacing:.04em }
+.tbl td { padding:10px 16px; border-bottom:1px solid var(--glass-border) }
+.tbl tr:last-child td { border-bottom:none }
+
+/* Big formula box */
+.formula-box { background:var(--surface); border:2px solid var(--accent); border-radius:12px; padding:1.5rem 2rem; text-align:center; margin:1rem 0 }
+.formula-box .big { font-size:1.5rem; font-weight:900; color:var(--accent); font-family:'Noto Serif SC',Georgia,serif }
+.formula-box .note { font-size:.8rem; color:var(--muted); margin-top:.3rem }
+
+/* Step cards */
+.step-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem }
+.step-card { background:var(--glass); border:1px solid var(--glass-border); border-radius:12px; padding:1.5rem; text-align:center }
+.step-num { width:40px; height:40px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; margin:0 auto .8rem; font-size:1.2rem; font-weight:800 }
+.step-card h3 { font-size:.95rem; margin-bottom:.3rem }
+.step-card .p { font-size:.8rem }
+
+/* Highlight box */
+.hl-box { background:var(--surface); border-left:4px solid var(--accent); padding:1rem 1.5rem; border-radius:0 8px 8px 0; margin:1rem 0; font-size:.9rem }
+.hl-box strong { color:var(--accent) }
+
+/* Big number callout */
+.big-callout { text-align:center; padding:2rem; background:var(--surface); border-radius:16px }
+.big-callout .giant { font-size:4rem; font-weight:900; color:var(--accent); font-family:'Noto Serif SC',serif; line-height:1 }
+.big-callout .giant sup { font-size:1.2rem }
+.big-callout .desc { font-size:.9rem; color:var(--muted); margin-top:.5rem }
+</style>
+</head>
+<body>
+
+<div id="bar"></div><div id="dots"></div>
+
+<!-- 1: Cover -->
+<div class="slide on" id="s1">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge">小学数学 · 四年级</div>
+    <h1 class="hero-title">鸡兔同笼<em>数学广角 · 经典趣题</em></h1>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val">≈1500年</div><div class="lbl">《孙子算经》</div></div>
+      <div class="hero-stat"><div class="val">4种</div><div class="lbl">解题方法</div></div>
+      <div class="hero-stat"><div class="val">1个</div><div class="lbl">核心思想：化繁为简</div></div>
+    </div>
+    <div class="hero-scroll">按 → 开始上课</div>
+  </div>
+</div>
+
+<!-- 2: Story Import -->
+<div class="slide" id="s2">
+  <div class="wrap">
+    <div class="label">01 · 故事导入</div>
+    <h2 class="title">一道流传了 1500 年的数学题</h2>
+    <div class="big-callout" style="margin-top:1.5rem">
+      <div class="giant" style="color:var(--text);font-size:2rem;line-height:1.8">
+        「今有雉兔同笼，<br>上有三十五头，<br>下有九十四足，<br>问雉兔各几何？」
+      </div>
+      <div class="desc" style="margin-top:1rem">——《孙子算经》（约公元400年）</div>
+    </div>
+    <p class="sub" style="margin-top:1.5rem;text-align:center">翻译：笼子里有鸡🐔和兔🐰，共35个头、94只脚，问鸡和兔各几只？</p>
+  </div>
+</div>
+
+<!-- 3: Simplify -->
+<div class="slide surface" id="s3">
+  <div class="wrap">
+    <div class="label">02 · 策略</div>
+    <h2 class="title">化繁为简：先从简单数据入手</h2>
+    <p class="sub">35个头太多了，我们先从小数字开始！</p>
+    <div class="grid2" style="margin-top:1rem">
+      <div class="card card-left" style="border-left-color:var(--red)">
+        <h3>原题</h3>
+        <p class="p">35 个头<br>94 只脚<br>😰 数字太大不好算</p>
+      </div>
+      <div class="card card-left" style="border-left-color:var(--green)">
+        <h3>简化版</h3>
+        <p class="p"><strong>8 个头<br>26 只脚</strong><br>😊 从小入手，找到规律</p>
+      </div>
+    </div>
+    <div class="hl-box" style="margin-top:1.5rem">
+      <strong>核心思想：</strong>遇到复杂问题，先缩小数据找规律，再用规律解决大问题。
+    </div>
+  </div>
+</div>
+
+<!-- 4: List Method -->
+<div class="slide" id="s4">
+  <div class="wrap">
+    <div class="label">03 · 方法一</div>
+    <h2 class="title">列表法：一个一个试</h2>
+    <p class="sub">按顺序列举，找到符合条件的一组。</p>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>鸡 🐔</th><th>兔 🐰</th><th>总脚数</th><th>判断</th></tr></thead>
+        <tbody>
+          <tr><td>8</td><td>0</td><td>8×2=16</td><td style="color:var(--red)">✗ 太少</td></tr>
+          <tr><td>7</td><td>1</td><td>7×2+4=18</td><td style="color:var(--red)">✗</td></tr>
+          <tr><td>6</td><td>2</td><td>6×2+8=20</td><td style="color:var(--red)">✗</td></tr>
+          <tr><td>5</td><td>3</td><td>5×2+12=22</td><td style="color:var(--red)">✗</td></tr>
+          <tr><td>4</td><td>4</td><td>4×2+16=24</td><td style="color:var(--red)">✗</td></tr>
+          <tr style="background:var(--surface);font-weight:700"><td><strong>3</strong></td><td><strong>5</strong></td><td><strong>6+20=26</strong></td><td style="color:var(--green)">✅ 正确！</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="hl-box"><strong>你发现规律了吗？</strong>每增加 1 只兔、减少 1 只鸡，总脚数增加 <strong>2</strong> 只。</div>
+  </div>
+</div>
+
+<!-- 5: Assumption Method 1 -->
+<div class="slide surface" id="s5">
+  <div class="wrap">
+    <div class="label">04 · 方法二</div>
+    <h2 class="title">假设法①：假设全是鸡 🐔</h2>
+    <div class="step-grid" style="margin-top:1.5rem">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>假设全是鸡</h3>
+        <p class="p">8只鸡 → 8×2 = <strong>16只脚</strong></p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>算出差额</h3>
+        <p class="p">实际26 - 假设16 = <strong>差10只脚</strong></p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h3>每换一只兔</h3>
+        <p class="p">多 4-2 = <strong>2只脚</strong></p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <h3>得出答案</h3>
+        <p class="p">10÷2 = <strong>5只兔</strong><br>8-5 = <strong>3只鸡</strong></p>
+      </div>
+    </div>
+    <div class="formula-box" style="margin-top:1.5rem">
+      <div class="big">兔 = (总脚数 - 全鸡脚数) ÷ (4-2)</div>
+      <div class="note">兔 = (26 - 8×2) ÷ 2 = 10 ÷ 2 = <strong style="color:var(--accent);font-size:1.2rem">5</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- 6: Assumption Method 2 -->
+<div class="slide" id="s6">
+  <div class="wrap">
+    <div class="label">05 · 方法二</div>
+    <h2 class="title">假设法②：假设全是兔 🐰</h2>
+    <div class="step-grid" style="margin-top:1.5rem">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>假设全是兔</h3>
+        <p class="p">8只兔 → 8×4 = <strong>32只脚</strong></p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>算出差额</h3>
+        <p class="p">假设32 - 实际26 = <strong>多6只脚</strong></p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h3>每换一只鸡</h3>
+        <p class="p">少 4-2 = <strong>2只脚</strong></p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <h3>得出答案</h3>
+        <p class="p">6÷2 = <strong>3只鸡</strong><br>8-3 = <strong>5只兔</strong></p>
+      </div>
+    </div>
+    <div class="formula-box" style="margin-top:1.5rem">
+      <div class="big">鸡 = (全兔脚数 - 总脚数) ÷ (4-2)</div>
+      <div class="note">鸡 = (8×4 - 26) ÷ 2 = 6 ÷ 2 = <strong style="color:var(--accent);font-size:1.2rem">3</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- 7: Lift Feet Method -->
+<div class="slide surface" id="s7">
+  <div class="wrap">
+    <div class="label">06 · 方法三</div>
+    <h2 class="title">抬脚法：最有趣的方法 🦶</h2>
+    <p class="sub">让兔子们把前脚抬起来！</p>
+    <div class="grid2" style="margin-top:1rem">
+      <div class="card card-top" style="border-top-color:var(--accent)">
+        <h3>🐔🐰 第一步：每只抬 2 只脚</h3>
+        <p class="p">8只动物 × 2只 = <strong>抬起16只脚</strong><br>还剩 26 - 16 = <strong>10只脚</strong></p>
+      </div>
+      <div class="card card-top" style="border-top-color:var(--accent2)">
+        <h3>🐰 第二步：剩下的都是兔脚</h3>
+        <p class="p">鸡已经没脚了（2只都抬了）<br>兔子还剩 4-2 = 2只脚在地上<br>10 ÷ 2 = <strong>5只兔！</strong></p>
+      </div>
+    </div>
+    <div class="hl-box" style="margin-top:1.5rem">
+      <strong>思维突破：</strong>让鸡"悬空"——剩下的脚全是兔子的！一下就找到了兔的只数。
+    </div>
+  </div>
+</div>
+
+<!-- 8: Summary -->
+<div class="slide" id="s8">
+  <div class="wrap">
+    <div class="label">07 · 方法总结</div>
+    <h2 class="title">三种方法，一个核心</h2>
+    <div class="grid3" style="margin-top:1.5rem">
+      <div class="card">
+        <h3>📋 列表法</h3>
+        <p class="p">直观、适合小数据<br>培养有序思维<br>发现变化规律</p>
+      </div>
+      <div class="card">
+        <h3>🧮 假设法</h3>
+        <p class="p">最常用、最高效<br>极端假设 → 调整<br>公式可复用</p>
+      </div>
+      <div class="card">
+        <h3>🦶 抬脚法</h3>
+        <p class="p">趣味性强<br>想象力突破<br>理解背后算理</p>
+      </div>
+    </div>
+    <div class="hl-box" style="margin-top:1.5rem">
+      <strong>共同核心：假设与调整。</strong>先假设一种情况，计算与实际的差距，再根据"每换一次差多少"来调整。
+    </div>
+  </div>
+</div>
+
+<!-- 9: Solve Original -->
+<div class="slide surface" id="s9">
+  <div class="wrap">
+    <div class="label">08 · 挑战原题</div>
+    <h2 class="title">回到 1500 年前的原题</h2>
+    <div class="big-callout" style="margin-top:1rem">
+      <div class="giant" style="color:var(--text);font-size:1.8rem">35 头 · 94 脚</div>
+    </div>
+    <div class="grid2" style="margin-top:1rem">
+      <div class="card card-left" style="border-left-color:var(--accent)">
+        <h3>假设全是鸡 🐔</h3>
+        <p class="p">35×2 = 70只脚<br>94 - 70 = <strong>差24只</strong><br>24 ÷ 2 = <strong>12只兔</strong><br>35 - 12 = <strong>23只鸡</strong></p>
+      </div>
+      <div class="card card-left" style="border-left-color:var(--accent2)">
+        <h3>检验 ✅</h3>
+        <p class="p">23×2 = 46（鸡脚）<br>12×4 = 48（兔脚）<br>46 + 48 = <strong>94</strong> ✓<br>23 + 12 = <strong>35</strong> ✓</p>
+      </div>
+    </div>
+    <div class="formula-box" style="margin-top:1rem">
+      <div class="big">鸡 <strong style="color:var(--accent);font-size:2rem">23</strong> 只 &nbsp;·&nbsp; 兔 <strong style="color:var(--accent);font-size:2rem">12</strong> 只</div>
+    </div>
+  </div>
+</div>
+
+<!-- 10: Extension -->
+<div class="slide" id="s10">
+  <div class="wrap">
+    <div class="label">09 · 举一反三</div>
+    <h2 class="title">换个马甲你还认识吗？</h2>
+    <div class="grid2" style="margin-top:1.5rem">
+      <div class="card card-top" style="border-top-color:var(--green)">
+        <h3>🐢🦆 龟鹤算</h3>
+        <p class="p">龟和鹤共 40 只，龟腿和鹤腿共 112 条。<br><br><strong>龟=兔(4腿)，鹤=鸡(2腿)</strong><br>一样的解法！</p>
+      </div>
+      <div class="card card-top" style="border-top-color:var(--accent)">
+        <h3>🚗 租车问题</h3>
+        <p class="p">全班 42 人，大车坐 6 人，小车坐 4 人，共租 9 辆车。<br><br><strong>大车=兔，小车=鸡</strong><br>换了个场景而已！</p>
+      </div>
+      <div class="card card-top" style="border-top-color:var(--red)">
+        <h3>🪙 硬币问题</h3>
+        <p class="p">5角硬币和1元硬币共 20 枚，总值 14 元。<br><br><strong>1元=兔，5角=鸡</strong><br>数学模型的威力！</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 11: Practice -->
+<div class="slide surface" id="s11">
+  <div class="wrap">
+    <div class="label">10 · 练一练</div>
+    <h2 class="title">📝 课堂练习</h2>
+    <div class="grid2" style="margin-top:1.5rem">
+      <div class="card card-left" style="border-left-color:var(--accent)">
+        <h3>基础题</h3>
+        <p class="p">笼子里有鸡和兔共 20 只，脚共 56 只。鸡和兔各几只？<br><small>（用假设法试试）</small></p>
+      </div>
+      <div class="card card-left" style="border-left-color:var(--accent2)">
+        <h3>变式题</h3>
+        <p class="p">停车场上，汽车(4轮)和摩托车(2轮)共 24 辆，轮子共 68 个。各有几辆？<br><small>（汽车=兔，摩托=鸡）</small></p>
+      </div>
+    </div>
+    <div class="hl-box" style="margin-top:1.5rem">
+      <strong>提示：</strong>不管题目怎么变，找到"4脚动物"和"2脚动物"的对应关系，就是鸡兔同笼！
+    </div>
+  </div>
+</div>
+
+<!-- 12: Outro -->
+<div class="slide" id="s12">
+  <div class="hero-bg"></div>
+  <div class="wrap" style="position:relative;z-index:2;text-align:center">
+    <h2 class="title" style="font-size:2.2rem;margin-bottom:1.5rem">🎉 你学会了！</h2>
+    <div class="stat-strip">
+      <div class="stat-item"><div class="num">3</div><div class="lbl">种解法</div></div>
+      <div class="stat-item"><div class="num">1</div><div class="lbl">个核心思想</div></div>
+      <div class="stat-item"><div class="num">1500+</div><div class="lbl">年传承</div></div>
+    </div>
+    <p class="p" style="max-width:600px;margin:1.5rem auto;font-size:1rem">
+      下次见到"鸡兔同笼"类问题——别慌。<br>列表、假设、抬脚，总有一招能拿下。
+    </p>
+    <div class="formula-box">
+      <div class="big">从简单入手 → 找到规律 → 解决问题</div>
+      <div class="note">这就是数学的终极武器——<strong style="color:var(--accent)">化繁为简</strong></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide'), total = slides.length;
+const dotsEl = document.getElementById('dots'), bar = document.getElementById('bar');
+let idx = 0, lock = false;
+for (let i = 0; i < total; i++) {
+  const d = document.createElement('span');
+  d.addEventListener('click', () => go(i));
+  dotsEl.appendChild(d);
+}
+const dots = dotsEl.querySelectorAll('span');
+function go(i) {
+  if (i < 0 || i >= total || lock) return; lock = true;
+  slides.forEach((s, j) => { s.classList.toggle('on', j === i); if (j === i) s.scrollTop = 0; });
+  dots.forEach((d, j) => d.classList.toggle('on', j === i));
+  bar.style.width = ((i + 1) / total * 100) + '%'; idx = i;
+  setTimeout(() => lock = false, 400);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(idx + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(idx - 1); }
+  else if (e.key === 'Home') { e.preventDefault(); go(0); } else if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+});
+let ty = 0;
+document.addEventListener('touchstart', e => { ty = e.touches[0].clientY }, {passive:true});
+document.addEventListener('touchend', e => {
+  const d = e.changedTouches[0].clientY - ty;
+  if (Math.abs(d) > 40) go(d > 0 ? idx - 1 : idx + 1);
+});
+document.addEventListener('wheel', e => {
+  if (lock) return;
+  if (e.deltaY > 20) go(idx + 1); else if (e.deltaY < -20) go(idx - 1);
+}, {passive:true});
+go(0);
+</script>
+</body>
+</html>
