@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>"千兆路由器"骗局大起底</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ═════ ROOT ═════ */
+:root {
+  --bg: #0b0f19; --surface: #111827; --surface2: #1a2332;
+  --text: #e8edf5; --muted: #7c8aa0;
+  --accent: #60a5fa; --accent2: #facc15; --amber: #f59e0b;
+  --green: #4ade80; --red: #f87171;
+  --glass: rgba(255,255,255,.03); --glass-border: rgba(255,255,255,.06);
+}
+* { margin:0; padding:0; box-sizing:border-box }
+body {
+  font-family:'Inter','Noto Sans SC',sans-serif;
+  background:var(--bg); color:var(--text);
+  overflow:hidden; -webkit-font-smoothing:antialiased;
+}
+
+/* ═════ SLIDE ENGINE ═════ */
+.slide {
+  position:fixed; inset:0;
+  overflow-y:auto; overflow-x:hidden;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:3rem 2rem;
+  opacity:0; pointer-events:none; transition:opacity .4s ease;
+  background:var(--bg);
+  scrollbar-width:thin; scrollbar-color:var(--surface2) transparent;
+}
+.slide.on { opacity:1; pointer-events:auto }
+.slide.surface { background:var(--surface) }
+.slide > .wrap { width:100%; max-width:1050px }
+
+/* ═════ NAV ═════ */
+#dots { position:fixed; right:18px; top:50%; transform:translateY(-50%); z-index:999;
+  display:flex; flex-direction:column; gap:8px }
+#dots span { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.15);
+  cursor:pointer; transition:all .3s }
+#dots span.on { background:var(--accent2); box-shadow:0 0 10px rgba(250,204,21,.4); width:20px; border-radius:4px }
+#bar { position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--accent2),var(--accent),var(--green));
+  z-index:999; transition:width .35s ease; border-radius:0 2px 2px 0; box-shadow:0 0 8px rgba(250,204,21,.3) }
+
+/* ═════ HERO SLIDE ═════ */
+.hero-bg { position:absolute; inset:0;
+  background:radial-gradient(ellipse 80% 60% at 30% 50%, rgba(250,204,21,.06) 0%, transparent 60%),
+             radial-gradient(ellipse 60% 80% at 70% 40%, rgba(96,165,250,.05) 0%, transparent 60%),
+             linear-gradient(135deg,#1a1a2e 0%,#0b0f19 50%,#16213e 100%); }
+.hero-grid { position:absolute; inset:0; opacity:.02;
+  background-image:linear-gradient(rgba(255,255,255,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.3) 1px,transparent 1px);
+  background-size:80px 80px }
+.hero-content { position:relative; z-index:2; text-align:center }
+.hero-badge { display:inline-block; padding:5px 16px; border-radius:99px;
+  border:1px solid rgba(248,113,113,.3); font-size:.75rem; letter-spacing:.2em;
+  color:var(--red); margin-bottom:1.8rem; font-weight:500 }
+.hero-title { font-family:'Noto Serif SC',Georgia,serif;
+  font-size:clamp(2rem,6vw,4.2rem); font-weight:900; line-height:1.15;
+  color:#fff; margin-bottom:.3em }
+.hero-title .hl { color:var(--accent2) }
+.hero-title em { font-style:normal; display:block; font-size:.38em; font-weight:400;
+  color:var(--muted); margin-top:.3em }
+.hero-stats { display:flex; gap:2.5rem; justify-content:center; margin-top:2rem; flex-wrap:wrap }
+.hero-stat { text-align:center }
+.hero-stat .val { font-size:2.2rem; font-weight:800;
+  background:linear-gradient(135deg,var(--accent2),var(--amber));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.hero-stat .lbl { font-size:.72rem; color:var(--muted); margin-top:4px }
+.hero-scroll { color:var(--muted); font-size:.78rem; margin-top:2rem; animation:floatHint 2s ease-in-out infinite }
+@keyframes floatHint { 0%,100%{opacity:.4;transform:translateY(0)} 50%{opacity:1;transform:translateY(4px)} }
+
+/* ═════ TYPOGRAPHY ═════ */
+.label { font-size:.72rem; letter-spacing:.22em; color:var(--accent); text-transform:uppercase; margin-bottom:.8rem; font-weight:600 }
+.title { font-family:'Noto Serif SC',Georgia,serif; font-size:clamp(1.6rem,3.5vw,2.4rem); font-weight:700; margin-bottom:.5rem; line-height:1.3 }
+.title .hl { color:var(--accent2) }
+.sub { color:var(--muted); font-size:.95rem; max-width:600px; margin-bottom:2rem }
+.p { color:var(--muted); line-height:1.9; font-size:.9rem }
+.p strong { color:#fff }
+
+/* ═════ GLOW ANIMATIONS ═════ */
+@keyframes breathe {
+  0%,100%{text-shadow:0 0 8px rgba(250,204,21,.4),0 0 20px rgba(250,204,21,.2),0 0 40px rgba(250,204,21,.1)}
+  50%{text-shadow:0 0 16px rgba(250,204,21,.8),0 0 40px rgba(250,204,21,.5),0 0 80px rgba(250,204,21,.25)}
+}
+.glow { color:var(--accent2); font-weight:900; animation:breathe 2.8s ease-in-out infinite }
+.glow-b { color:var(--accent); font-weight:900; animation:breathe 3.2s ease-in-out infinite }
+.glow-box { display:inline-block; padding:4px 14px; border-radius:8px; background:rgba(250,204,21,.08); border:1px solid rgba(250,204,21,.25); }
+
+/* ═════ CARDS ═════ */
+.grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.2rem }
+.grid3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1rem }
+.card { background:var(--glass); border:1px solid var(--glass-border); border-radius:14px; padding:1.8rem; transition:transform .3s,border-color .3s }
+.card:hover { transform:translateY(-3px); border-color:rgba(96,165,250,.3) }
+.card h3 { font-size:1.05rem; margin-bottom:.4rem; font-weight:600 }
+.card .p { font-size:.84rem; line-height:1.65 }
+.card-top { border-top:3px solid var(--accent) }
+.card-left { border-left:3px solid var(--accent) }
+.card-stat { margin-top:1rem; padding-top:.8rem; border-top:1px solid var(--glass-border) }
+.card-stat .big { font-size:1.8rem; font-weight:800; color:var(--accent2) }
+.card-stat .big.r { color:var(--red) }
+.card-stat .tiny { font-size:.68rem; color:var(--muted) }
+
+/* ═════ STAT STRIP ═════ */
+.stat-strip { display:flex; justify-content:center; gap:2.5rem; flex-wrap:wrap;
+  padding:2rem; background:var(--surface); border-radius:14px; margin:1.5rem 0 }
+.stat-item { text-align:center }
+.stat-item .num { font-size:2.4rem; font-weight:900;
+  background:linear-gradient(135deg,var(--accent2),var(--amber));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.stat-item .num.g { background:linear-gradient(135deg,var(--green),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.stat-item .num.o { background:linear-gradient(135deg,var(--amber),var(--red)); -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.stat-item .num.b { background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.stat-item .lbl { font-size:.75rem; color:var(--muted); margin-top:4px }
+
+/* ═════ TABLE ═════ */
+.tbl-wrap { overflow-x:auto; margin:1.2rem 0; border-radius:10px; border:1px solid var(--glass-border) }
+.tbl { width:100%; border-collapse:collapse; font-size:.84rem }
+.tbl th { background:var(--surface2); color:var(--accent); padding:11px 16px; text-align:left; font-weight:600; font-size:.75rem; letter-spacing:.04em; text-transform:uppercase }
+.tbl td { padding:10px 16px; border-bottom:1px solid var(--glass-border); color:var(--text) }
+.tbl tr:last-child td { border-bottom:none }
+.td-bad { color:var(--red) }
+.td-good { color:var(--green) }
+
+/* ═════ TWO COLUMN ═════ */
+.col2 { display:grid; grid-template-columns:1fr 1fr; gap:2.5rem; align-items:center }
+@media(max-width:768px) { .col2{grid-template-columns:1fr} }
+
+/* ═════ ADVANTAGES ═════ */
+.adv-row { display:flex; align-items:center; gap:16px; background:var(--glass); border:1px solid var(--glass-border);
+  border-radius:12px; padding:1.2rem 1.6rem; margin-bottom:.7rem; transition:transform .3s }
+.adv-row:hover { transform:translateX(6px); border-color:rgba(96,165,250,.3) }
+.adv-num { width:30px; height:30px; border-radius:6px; background:linear-gradient(135deg,var(--accent2),var(--amber));
+  display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:#0b0f19; flex-shrink:0 }
+.adv-text { font-size:.95rem }
+
+/* ═════ BIG QUOTE ═════ */
+.big-quote {
+  text-align:center; padding:2rem; background:var(--surface);
+  border:2px solid rgba(250,204,21,.15); border-radius:16px;
+  font-size:clamp(1.1rem,2.5vw,1.5rem); font-weight:700; line-height:1.8;
+  color:var(--accent2); position:relative;
+}
+.big-quote::before { content:"💡"; position:absolute; top:-16px; left:24px; font-size:1.4rem }
+
+/* ═════ DOOR DIAGRAM ═════ */
+.door-diagram { position:relative; width:100%; max-width:460px; height:180px; margin:0 auto 20px }
+.door-frame { position:absolute; inset:0; border:4px solid rgba(96,165,250,.5); border-radius:12px; background:transparent }
+.door-label-out { position:absolute; top:-24px; left:50%; transform:translateX(-50%); color:var(--accent); font-weight:700; font-size:.8rem; white-space:nowrap }
+.door-corridor { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:55%; height:45%; background:rgba(250,204,21,.06); border:2px dashed rgba(250,204,21,.4);
+  border-radius:8px; display:flex; align-items:center; justify-content:center }
+.door-label-in { color:var(--accent2); font-weight:700; font-size:.8rem; text-align:center }
+.door-arrow { position:absolute; right:-40px; top:50%; transform:translateY(-50%); color:var(--red); font-size:1.4rem }
+
+/* ═════ BAR CHART (interactive) ═════ */
+.chart-toggle { display:inline-flex; gap:0; margin-bottom:24px; background:var(--surface2); border-radius:10px; padding:4px }
+.chart-toggle button { padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-size:.82rem; font-weight:700; background:transparent; color:var(--muted); transition:all .3s; font-family:inherit }
+.chart-toggle button.active { background:var(--accent2); color:#0b0f19 }
+.chart-bars { display:flex; justify-content:center; align-items:flex-end; gap:36px; height:220px }
+.bar-group { display:flex; flex-direction:column; align-items:center; gap:8px }
+.bar-label { font-size:.78rem; color:var(--muted); font-weight:600 }
+.bar-value { font-size:1.05rem; font-weight:900; color:var(--accent2) }
+.bar-wrap { width:74px; height:180px; background:var(--surface2); border-radius:10px 10px 0 0; position:relative; overflow:hidden }
+.bar-fill-chart { position:absolute; bottom:0; left:0; right:0; border-radius:10px 10px 0 0; transition:height .8s cubic-bezier(.22,1,.36,1),background .6s }
+
+/* ═════ CTA BUTTON ═════ */
+.cta-btn { display:inline-block; padding:16px 42px; font-size:1.1rem; font-weight:900;
+  color:#0b0f19; background:linear-gradient(135deg,var(--accent2),var(--amber));
+  border:none; border-radius:14px; cursor:pointer; letter-spacing:.04em;
+  transition:all .3s; box-shadow:0 0 30px rgba(250,204,21,.2);
+  font-family:inherit; text-decoration:none }
+.cta-btn:hover { transform:translateY(-3px); box-shadow:0 0 50px rgba(250,204,21,.4),0 8px 30px rgba(0,0,0,.3) }
+
+/* ═════ MODAL ═════ */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.8); z-index:10000;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity .3s }
+.modal-overlay.open { opacity:1; pointer-events:auto }
+.modal-box { background:var(--surface); border-radius:18px; padding:36px 32px;
+  max-width:440px; width:90%; text-align:center; border:1px solid var(--glass-border);
+  transform:translateY(16px); transition:transform .3s }
+.modal-overlay.open .modal-box { transform:translateY(0) }
+.modal-box h3 { color:var(--accent2); margin-bottom:12px; font-size:1.2rem }
+.modal-steps { text-align:left; background:#0b0f19; border-radius:10px; padding:18px 20px; margin:16px 0; font-size:.84rem; line-height:2.2; color:var(--muted) }
+.modal-steps span { color:var(--accent); font-weight:700 }
+.modal-close { padding:8px 28px; border-radius:8px; background:var(--surface2); color:var(--text); border:none; cursor:pointer; font-size:.85rem; font-weight:700; transition:background .3s; font-family:inherit }
+.modal-close:hover { background:#2d3f5a }
+
+/* ═════ OUTRO ═════ */
+.outro-grid { display:grid; grid-template-columns:1fr 1px 1fr; gap:2rem; align-items:start }
+.outro-col h3 { color:var(--amber); margin-bottom:1rem; font-size:1.1rem }
+.outro-divider { background:rgba(100,116,139,.2); align-self:stretch }
+.outro-col .p { line-height:2; font-size:.84rem }
+
+/* ═════ FOOTER ═════ */
+.foot { text-align:center; color:var(--muted); font-size:.8rem; padding:3rem 0 1rem }
+.foot strong { color:var(--accent) }
+
+@media(max-width:640px) {
+  .slide { padding:2rem 1.2rem }
+  .chart-bars { gap:18px; height:180px }
+  .bar-wrap { width:56px; height:140px }
+  .outro-grid { grid-template-columns:1fr }
+  .outro-divider { display:none }
+}
+</style>
+</head>
+<body>
+
+<div id="bar"></div><div id="dots"></div>
+
+<!-- ═══ 1: HERO ═══ -->
+<div class="slide on" id="s1">
+  <div class="hero-bg"></div><div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">⚠️ 一个五年老用户的血泪教训</div>
+    <h1 class="hero-title"><span class="hl">"千兆路由器"</span>骗局大起底<em>我是怎么被"四天线"忽悠了五年的</em></h1>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val">5年</div><div class="lbl">上当时长</div></div>
+      <div class="hero-stat"><div class="val">500M</div><div class="lbl">实际网速</div></div>
+      <div class="hero-stat"><div class="val">1733M</div><div class="lbl">宣传速率（虚的）</div></div>
+    </div>
+    <div class="hero-scroll">按 → 或滚轮翻页</div>
+  </div>
+</div>
+
+<!-- ═══ 2: 引子——血泪史 ═══ -->
+<div class="slide surface" id="s2">
+  <div class="wrap">
+    <div class="label">01 · 引子</div>
+    <h2 class="title">一个<span class="hl">"五年老用户"</span>的血泪史</h2>
+    <div class="col2" style="margin-top:1rem">
+      <div class="p">
+        我家办了<strong>千兆光纤</strong>，但手机连Wi-Fi死活只能跑<strong style="color:var(--red)">500兆</strong>。<br><br>
+        我一直骂电信是"内鬼"，结果换了光猫、换了网线都没用。<br><br>
+        最后发现——<strong style="color:var(--accent2)">"千兆路由器"才是最大的内鬼！</strong>
+      </div>
+      <div class="big-quote">
+        我花了五年<span class="glow">千兆</span>的钱<br>
+        却享受了<span class="glow">五百兆</span>的网速<br>
+        要不是有AI帮我分析<br>
+        我可能这辈子都蒙在鼓里
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 3: 骗局拆解——快递分拣员 ═══ -->
+<div class="slide" id="s3">
+  <div class="wrap">
+    <div class="label">02 · 骗局拆解</div>
+    <h2 class="title">路由器厂家的<span class="hl">"数字魔术"</span></h2>
+    <p class="sub">把路由器想象成一个<strong style="color:var(--accent2)">快递分拣中心</strong>，天线就是里面的分拣员。</p>
+    <div class="grid2" style="margin-top:.5rem">
+      <div class="card card-top" style="border-top-color:var(--accent2)">
+        <h3>📢 厂家宣传的</h3>
+        <p class="p">4个分拣员同时干活 → <span class="glow-box">1733 Mbps</span><br>这就是所谓的 <strong>4×4 MIMO</strong><br>听起来很猛对吧？</p>
+        <div class="card-stat"><div class="big">1733</div><div class="tiny">Mbps · 总速率</div></div>
+      </div>
+      <div class="card card-top" style="border-top-color:var(--red)">
+        <h3>📱 你手机的实际能力</h3>
+        <p class="p">也就iPhone和安卓旗舰，只有<strong>2个接收天线</strong><br>最多对接2个分拣员 → <strong>2×2 MIMO</strong></p>
+        <div class="card-stat"><div class="big r">866</div><div class="tiny">Mbps · 理论上限</div></div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:1.5rem;font-size:1.1rem;color:var(--red);font-weight:700">
+      速度直接从 <span class="glow">1733</span> 砍半 → <span class="glow">866 Mbps</span>
+    </p>
+  </div>
+</div>
+
+<!-- ═══ 4: 对比表 ═══ -->
+<div class="slide surface" id="s4">
+  <div class="wrap">
+    <div class="label">03 · 残酷对比</div>
+    <h2 class="title">为什么你测速<span class="hl">永远破不了600</span></h2>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th></th><th>📢 厂家宣传</th><th>📱 你手机的实际能力</th></tr></thead>
+        <tbody>
+          <tr><td><strong>MIMO 配置</strong></td><td class="td-bad">4×4 MIMO</td><td class="td-good">2×2 MIMO</td></tr>
+          <tr><td><strong>频宽</strong></td><td>80MHz</td><td>80MHz</td></tr>
+          <tr><td><strong>理论速率</strong></td><td style="color:var(--accent2);font-weight:700">1733 Mbps</td><td style="color:var(--accent);font-weight:700">866 Mbps</td></tr>
+          <tr><td><strong>实际测速</strong></td><td style="color:var(--red)">≈ 永远跑不到</td><td style="color:var(--green);font-weight:700">≈ 500-600 Mbps</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="text-align:center;color:var(--red);font-weight:700;margin-top:.8rem">
+      ⬆ 866还只是"握手速度"，扣除干扰和损耗，到手就剩500多 ⬆
+    </p>
+  </div>
+</div>
+
+<!-- ═══ 5: 真凶揭秘 ═══ -->
+<div class="slide" id="s5">
+  <div class="wrap">
+    <div class="label">04 · 文字游戏</div>
+    <h2 class="title">警惕<span class="hl">"千兆"</span>的文字游戏</h2>
+    <div class="grid2" style="margin-top:1rem">
+      <div class="card card-left" style="border-left-color:var(--red)">
+        <h3 style="color:var(--red)">🔌 揭秘一</h3>
+        <p class="p">厂商标的"千兆"往往只指<strong>有线网口</strong>（WAN/LAN口）是千兆——插网线确实能跑满。但<strong>Wi-Fi信号</strong>？那是另一回事。</p>
+      </div>
+      <div class="card card-left" style="border-left-color:var(--accent2)">
+        <h3 style="color:var(--accent2)">🎯 揭秘二</h3>
+        <p class="p">真正的"满血千兆Wi-Fi"必须同时满足两个硬指标：<br><span class="glow">160MHz</span> 频宽 <strong>+</strong> <span class="glow-b">Wi-Fi 6</span> 协议。<strong>缺一不可。</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 6: 大门比喻 ═══ -->
+<div class="slide surface" id="s6">
+  <div class="wrap">
+    <div class="label">05 · 通俗比喻</div>
+    <h2 class="title">大门宽10米，走廊<span class="hl">只有5米</span></h2>
+    <p class="sub">网口是千兆 = 家里大门宽10米。但Wi-Fi是80MHz = 门后面的走廊只有5米宽。</p>
+    <div class="door-diagram">
+      <div class="door-frame">
+        <div class="door-label-out">🔌 千兆网口（大门宽10米）</div>
+      </div>
+      <div class="door-corridor">
+        <div class="door-label-in">📶 80MHz 频宽<br>（走廊仅5米宽）</div>
+      </div>
+      <div class="door-arrow">➡️🐌</div>
+    </div>
+    <p style="text-align:center;color:var(--red);font-weight:700;font-size:1.05rem;margin-top:.5rem">
+      外面马路再宽（千兆光纤），进了走廊也得挤成慢速！
+    </p>
+  </div>
+</div>
+
+<!-- ═══ 7: 满血公式 ═══ -->
+<div class="slide" id="s7">
+  <div class="wrap">
+    <div class="label">06 · 核心公式</div>
+    <h2 class="title">真正的<span class="hl">"满血千兆Wi-Fi"</span></h2>
+    <div class="stat-strip" style="flex-direction:column;align-items:center;gap:1.5rem">
+      <div style="font-size:clamp(1.2rem,2.5vw,1.6rem);text-align:center;line-height:2">
+        <span class="glow" style="font-size:1.3em">160MHz 频宽</span><br>
+        <span style="color:var(--muted)">+</span><br>
+        <span class="glow-b" style="font-size:1.3em">Wi-Fi 6 协议</span><br>
+        <span style="color:var(--muted)">=</span><br>
+        <span style="color:var(--green);font-weight:900;font-size:1.2em">真正的千兆Wi-Fi</span>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--red);font-weight:700;margin-top:1.5rem;font-size:1.05rem">
+      缺了任意一个，你那千兆宽带就是在"交智商税"
+    </p>
+  </div>
+</div>
+
+<!-- ═══ 8: 交互图表 ═══ -->
+<div class="slide surface" id="s8">
+  <div class="wrap" style="text-align:center">
+    <div class="label">📊 眼见为实</div>
+    <h2 class="title">点一下按钮，看看<span class="hl">差距有多大</span></h2>
+    <div class="chart-toggle" id="chartToggle">
+      <button class="active" data-mode="fake">😈 厂家让你以为的</button>
+      <button data-mode="real">😤 你实际得到的</button>
+    </div>
+    <div class="chart-bars">
+      <div class="bar-group">
+        <div class="bar-label">宣传速率</div>
+        <div class="bar-value" id="barVal1">1733</div>
+        <div class="bar-wrap"><div class="bar-fill-chart" id="bar1" style="height:100%;background:linear-gradient(180deg,var(--accent),var(--accent2))"></div></div>
+        <div style="font-size:.68rem;color:var(--muted)">Mbps</div>
+      </div>
+      <div class="bar-group">
+        <div class="bar-label">手机理论</div>
+        <div class="bar-value" id="barVal2">866</div>
+        <div class="bar-wrap"><div class="bar-fill-chart" id="bar2" style="height:50%;background:linear-gradient(180deg,var(--accent),var(--accent2))"></div></div>
+        <div style="font-size:.68rem;color:var(--muted)">Mbps</div>
+      </div>
+      <div class="bar-group">
+        <div class="bar-label">实际到手</div>
+        <div class="bar-value" id="barVal3" style="color:var(--red)">500</div>
+        <div class="bar-wrap"><div class="bar-fill-chart" id="bar3" style="height:29%;background:linear-gradient(180deg,var(--red),rgba(248,113,113,.5))"></div></div>
+        <div style="font-size:.68rem;color:var(--muted)">Mbps</div>
+      </div>
+    </div>
+    <p id="chartCaption" style="margin-top:20px;color:var(--muted);font-size:.85rem">
+      😈 看到没？1733 和 500 之间，差了整整 <strong style="color:var(--red)">3.5倍</strong>
+    </p>
+  </div>
+</div>
+
+<!-- ═══ 9: 避坑指南 ═══ -->
+<div class="slide" id="s9">
+  <div class="wrap">
+    <div class="label">07 · 避坑指南</div>
+    <h2 class="title">三条铁律，<span class="hl">谁也坑不了你</span></h2>
+    <div style="margin-top:1rem">
+      <div class="adv-row"><span class="adv-num">1</span><span class="adv-text"><strong>别看"总速率"那个虚数</strong> — AX3000、AX6000 都是把 2.4G 和 5G 频段速度凑一起的噱头。你一次只能连一个频段。</span></div>
+      <div class="adv-row"><span class="adv-num">2</span><span class="adv-text"><strong>只看 5G 频段是否支持 <span class="glow">160MHz</span></strong> — 这是跑满千兆的<strong>唯一关键</strong>。详情页没提这五个字？直接关掉看下一家。</span></div>
+      <div class="adv-row"><span class="adv-num">3</span><span class="adv-text"><strong>只看协议是否为 <span class="glow-b">Wi-Fi 6</span>（或更高）</strong> — Wi-Fi 5 老古董就算侥幸支持 160MHz，优化也跟不上。认准 802.11ax。</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 10: 终极结论 ═══ -->
+<div class="slide surface" id="s10">
+  <div class="wrap" style="text-align:center">
+    <div class="label">CONCLUSION</div>
+    <h2 class="title" style="font-size:clamp(1.8rem,4vw,2.6rem)">你的千兆宽带<br><span class="hl">该沉冤得雪了</span></h2>
+    <div class="stat-strip" style="margin-top:1.5rem">
+      <div class="stat-item"><div class="num g">✅</div><div class="lbl">光猫没问题<br>央企不搞虚的</div></div>
+      <div class="stat-item"><div class="num o">🎯</div><div class="lbl">路由器<br>才是最大内鬼</div></div>
+      <div class="stat-item"><div class="num b">🔑</div><div class="lbl">换 160MHz 路由器<br>千兆立刻沉冤得雪</div></div>
+    </div>
+    <button class="cta-btn" id="ctaBtn" style="margin-top:1.5rem">
+      🔍 立刻去检查我的路由器规格
+    </button>
+  </div>
+</div>
+
+<!-- ═══ 11: OUTRO ═══ -->
+<div class="slide" id="s11">
+  <div class="hero-bg"></div>
+  <div class="wrap" style="position:relative;z-index:2">
+    <h2 class="title" style="font-size:clamp(1.6rem,3.5vw,2.2rem);margin-bottom:2rem">🧠 从此不再为"虚标速率"买单</h2>
+    <div class="outro-grid">
+      <div class="outro-col">
+        <h3>📌 核心结论</h3>
+        <p class="p">路由器宣传的"千兆"往往只是有线口的速度。Wi-Fi 要想跑满千兆，<span class="glow">160MHz</span> + <span class="glow-b">Wi-Fi 6</span> 缺一不可。<br><br>手机只有 2×2 MIMO，宣传的 4×4 速率跟你没有半毛钱关系。</p>
+      </div>
+      <div class="outro-divider"></div>
+      <div class="outro-col">
+        <h3>🔮 记住三件事</h3>
+        <p class="p">① 别看 AX3000/AX6000 这种总速率<br>② 认准 5G 频段 <span class="glow">160MHz</span><br>③ 认准 <span class="glow-b">Wi-Fi 6</span> 或更新协议<br><br>做到这三点，谁也坑不了你。</p>
+      </div>
+    </div>
+    <div class="foot">科普向内容 · 数据基于 IEEE 802.11 标准 · 不针对任何特定品牌<br>Powered by <strong>DeepSeek</strong> · 2026.06</div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL ═══════ -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div style="font-size:3rem;margin-bottom:8px">📱</div>
+    <h3>如何查看你的 Wi-Fi 实际速率</h3>
+    <div class="modal-steps">
+      <p>🍎 <span>iPhone：</span>设置 → 无线局域网 → 点击已连接 Wi-Fi 右侧的 ⓘ → 查看"传输速率"</p>
+      <p style="margin-top:6px">🤖 <span>安卓：</span>设置 → WLAN → 点击已连接 Wi-Fi → 查看"连接速度"或"链路速度"</p>
+      <p style="margin-top:10px;color:var(--accent2);font-weight:700">💡 如果这里显示的数字不到 1000Mbps，说明你的路由器该换了！</p>
+    </div>
+    <button class="modal-close" id="modalClose">知道了，我去看看 👀</button>
+  </div>
+</div>
+
+<!-- ═══════ ENGINE ═══════ -->
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+const dotsEl = document.getElementById('dots');
+const bar = document.getElementById('bar');
+let idx = 0, lock = false;
+
+// Build dots
+for (let i = 0; i < total; i++) {
+  const d = document.createElement('span');
+  d.addEventListener('click', () => go(i));
+  dotsEl.appendChild(d);
+}
+const dots = dotsEl.querySelectorAll('span');
+
+function go(i) {
+  if (i < 0 || i >= total || lock) return;
+  lock = true;
+  slides.forEach((s, j) => { s.classList.toggle('on', j === i); if (j === i) s.scrollTop = 0; });
+  dots.forEach((d, j) => d.classList.toggle('on', j === i));
+  bar.style.width = ((i + 1) / total * 100) + '%';
+  idx = i;
+  setTimeout(() => lock = false, 400);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(idx + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(idx - 1); }
+  else if (e.key === 'Home') { e.preventDefault(); go(0); }
+  else if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+});
+
+let ty = 0;
+document.addEventListener('touchstart', e => { ty = e.touches[0].clientY }, {passive:true});
+document.addEventListener('touchend', e => {
+  const d = e.changedTouches[0].clientY - ty;
+  if (Math.abs(d) > 40) go(d > 0 ? idx - 1 : idx + 1);
+});
+
+document.addEventListener('wheel', e => {
+  if (lock) return;
+  if (e.deltaY > 20) go(idx + 1);
+  else if (e.deltaY < -20) go(idx - 1);
+}, {passive:true});
+
+// ===== Chart Toggle =====
+(function(){
+  const buttons = document.querySelectorAll('#chartToggle button');
+  const bar1 = document.getElementById('bar1');
+  const bar2 = document.getElementById('bar2');
+  const bar3 = document.getElementById('bar3');
+  const barVal1 = document.getElementById('barVal1');
+  const barVal2 = document.getElementById('barVal2');
+  const barVal3 = document.getElementById('barVal3');
+  const caption = document.getElementById('chartCaption');
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mode = btn.dataset.mode;
+
+      if (mode === 'fake') {
+        bar1.style.height = '100%';
+        bar1.style.background = 'linear-gradient(180deg,var(--accent),var(--accent2))';
+        barVal1.textContent = '1733'; barVal1.style.color = 'var(--accent2)';
+
+        bar2.style.height = '50%';
+        bar2.style.background = 'linear-gradient(180deg,var(--accent),var(--accent2))';
+        barVal2.textContent = '866'; barVal2.style.color = 'var(--accent2)';
+
+        bar3.style.height = '29%';
+        bar3.style.background = 'linear-gradient(180deg,var(--red),rgba(248,113,113,.5))';
+        barVal3.textContent = '500'; barVal3.style.color = 'var(--red)';
+
+        caption.innerHTML = '😈 看，三个数字都挺大的对吧？——但<strong style="color:var(--red)">前两个你根本用不到</strong>';
+      } else {
+        bar1.style.height = '29%';
+        bar1.style.background = 'linear-gradient(180deg,var(--red),rgba(248,113,113,.5))';
+        barVal1.textContent = '500'; barVal1.style.color = 'var(--red)';
+
+        bar2.style.height = '29%';
+        bar2.style.background = 'linear-gradient(180deg,var(--red),rgba(248,113,113,.5))';
+        barVal2.textContent = '500'; barVal2.style.color = 'var(--red)';
+
+        bar3.style.height = '29%';
+        bar3.style.background = 'linear-gradient(180deg,var(--red),rgba(248,113,113,.5))';
+        barVal3.textContent = '500'; barVal3.style.color = 'var(--red)';
+
+        caption.innerHTML = '😤 残酷真相：不管你用什么手机，<strong style="color:var(--red)">实际都只能跑到500左右</strong>。那宣传的1733跟你没有半毛钱关系。';
+      }
+    });
+  });
+})();
+
+// ===== Modal =====
+(function(){
+  const modal = document.getElementById('modal');
+  document.getElementById('ctaBtn').addEventListener('click', () => modal.classList.add('open'));
+  document.getElementById('modalClose').addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) modal.classList.remove('open');
+  });
+})();
+
+// Init
+go(0);
+</script>
+</body>
+</html>
