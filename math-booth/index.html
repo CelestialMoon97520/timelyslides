@@ -177,7 +177,7 @@ body{
     <h2 class="title">拖动滑块，<span class="hl">直观感受</span>面积变化</h2>
     <div class="demo-layout">
       <div class="canvas-wrap">
-        <canvas id="mainCanvas" width="600" height="380"></canvas>
+        <canvas id="mainCanvas" width="650" height="400"></canvas>
       </div>
       <div class="data-panel">
         <div class="data-card">
@@ -209,7 +209,7 @@ body{
     <div class="slider-group">
       <button id="btnLeft">◀ 未进场</button>
       <button id="btnInit">初始</button>
-      <input type="range" id="xSlider" min="-4" max="6" step="0.02" value="0">
+      <input type="range" id="xSlider" min="-5" max="7" step="0.02" value="0">
       <button id="btnFig3">图3</button>
       <button id="btnRight">完全离开 ▶</button>
     </div>
@@ -447,14 +447,13 @@ if(!canvas)return;
 const ctx=canvas.getContext('2d');
 const W=canvas.width,H=canvas.height;
 
-// Equal scale for X and Y: SCALE px per meter
-const SCALE=42;
-const XMIN=-4.5,XMAX=8.5; // 13 units → 546 px, but we have rw~490
-// Adjust: center the view
-const ox=70,oy=H-40;
+// Equal scale: 40 px per meter, X from -6 to 9, Y from -1.5 to 7.5
+const SCALE=40;
+const XMIN=-6,XMAX=9,YMIN=-1.5,YMAX=7.5;
+const ox=50,oy=H-35;
 
 function sx(v){return ox+(v-XMIN)*SCALE}
-function sy(v){return oy-v*SCALE}
+function sy(v){return oy-(v-YMIN)*SCALE}
 
 function rectPoly(){return[[0,0],[3,0],[3,2.5],[0,2.5]]}
 function paraPoly(x){return[[-2+x,0],[1+x,0],[3+x,2],[x,2]]}
@@ -467,20 +466,18 @@ function clipPolygon(subject,clip){
     const a=clip[i],b=clip[(i+1)%n];
     for(let j=0;j<input.length;j++){
       const p=input[j],q=input[(j+1)%input.length];
-      const insideP=(b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])>=0;
-      const insideQ=(b[0]-a[0])*(q[1]-a[1])-(b[1]-a[1])*(q[0]-a[0])>=0;
-      if(insideP&&insideQ)output.push(q);
-      else if(insideP&&!insideQ){
+      const inP=(b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])>=0;
+      const inQ=(b[0]-a[0])*(q[1]-a[1])-(b[1]-a[1])*(q[0]-a[0])>=0;
+      if(inP&&inQ)output.push(q);
+      else if(inP&&!inQ||!inP&&inQ){
         const A1=q[1]-p[1],B1=p[0]-q[0],C1=A1*p[0]+B1*p[1];
         const A2=b[1]-a[1],B2=a[0]-b[0],C2=A2*a[0]+B2*a[1];
         const det=A1*B2-A2*B1;
-        if(Math.abs(det)>1e-10)output.push([(B2*C1-B1*C2)/det,(A1*C2-A2*C1)/det]);
-      }else if(!insideP&&insideQ){
-        const A1=q[1]-p[1],B1=p[0]-q[0],C1=A1*p[0]+B1*p[1];
-        const A2=b[1]-a[1],B2=a[0]-b[0],C2=A2*a[0]+B2*a[1];
-        const det=A1*B2-A2*B1;
-        if(Math.abs(det)>1e-10)output.push([(B2*C1-B1*C2)/det,(A1*C2-A2*C1)/det]);
-        output.push(q);
+        if(Math.abs(det)>1e-10){
+          const pt=[(B2*C1-B1*C2)/det,(A1*C2-A2*C1)/det];
+          if(inP&&!inQ)output.push(pt);
+          else{output.push(pt);output.push(q)}
+        }
       }
     }
   }
@@ -492,26 +489,23 @@ function polygonArea(poly){
   for(let i=0;i<n;i++){const j=(i+1)%n;area+=poly[i][0]*poly[j][1];area-=poly[j][0]*poly[i][1]}
   return Math.abs(area)/2;
 }
-
 function computeS(x){return polygonArea(clipPolygon(paraPoly(x),rectPoly()))}
 
 function draw(x){
   ctx.clearRect(0,0,W,H);
 
   // Grid
-  ctx.strokeStyle='rgba(124,138,160,.05)';ctx.lineWidth=.5;
+  ctx.strokeStyle='rgba(124,138,160,.04)';ctx.lineWidth=.5;
   for(let i=Math.floor(XMIN);i<=Math.ceil(XMAX);i++){
-    ctx.beginPath();ctx.moveTo(sx(i),sy(-1.5));ctx.lineTo(sx(i),sy(7));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx(i),sy(YMIN));ctx.lineTo(sx(i),sy(YMAX));ctx.stroke();
   }
-  for(let i=-1;i<=7;i+=.5){
+  for(let i=Math.floor(YMIN);i<=Math.ceil(YMAX);i+=.5){
     ctx.beginPath();ctx.moveTo(sx(XMIN),sy(i));ctx.lineTo(sx(XMAX),sy(i));ctx.stroke();
   }
 
-  // Ground line
-  ctx.strokeStyle='rgba(124,138,160,.2)';ctx.lineWidth=1.5;
+  // AB ground line
+  ctx.strokeStyle='rgba(124,138,160,.2)';ctx.lineWidth=2;
   ctx.beginPath();ctx.moveTo(sx(XMIN),sy(0));ctx.lineTo(sx(XMAX),sy(0));ctx.stroke();
-  ctx.fillStyle='#7c8aa0';ctx.font='10px Inter,Noto Sans SC';ctx.textAlign='right';
-  ctx.fillText('AB线 y=0',sx(XMIN)-4,sy(0)+4);
 
   // Rectangle ABCD
   ctx.fillStyle='rgba(96,165,250,.06)';ctx.strokeStyle='#60a5fa';ctx.lineWidth=3;
@@ -519,40 +513,30 @@ function draw(x){
   ctx.lineTo(sx(3),sy(2.5));ctx.lineTo(sx(0),sy(2.5));ctx.closePath();ctx.fill();ctx.stroke();
 
   ctx.fillStyle='#60a5fa';ctx.font='bold 13px Inter,Noto Sans SC';ctx.textAlign='center';
-  ctx.fillText('A(0,0)',sx(0)-28,sy(0)+15);
-  ctx.fillText('B(3,0)',sx(3)+28,sy(0)+15);
-  ctx.fillText('C(3,2.5)',sx(3)+30,sy(2.5)+4);
-  ctx.fillText('D(0,2.5)',sx(0)-30,sy(2.5)+4);
+  ctx.fillText('A(0,0)',sx(0)-26,sy(0)+15);
+  ctx.fillText('B(3,0)',sx(3)+26,sy(0)+15);
+  ctx.fillText('C(3,2.5)',sx(3)+28,sy(2.5)+4);
+  ctx.fillText('D(0,2.5)',sx(0)-28,sy(2.5)+4);
 
-  // Dimension: AB
-  ctx.strokeStyle='rgba(124,138,160,.35)';ctx.lineWidth=1;ctx.setLineDash([2,4]);
-  ctx.beginPath();ctx.moveTo(sx(0),sy(0)+20);ctx.lineTo(sx(3),sy(0)+20);ctx.stroke();
-  ctx.fillStyle='#7c8aa0';ctx.font='11px Inter,Noto Sans SC';ctx.fillText('AB=3m',sx(1.5),sy(0)+34);
-
-  // Dimension: BC
-  ctx.beginPath();ctx.moveTo(sx(3)+20,sy(0));ctx.lineTo(sx(3)+20,sy(2.5));ctx.stroke();
-  ctx.fillText('BC=2.5m',sx(3)+36,sy(1.25));
+  // Dimensions
+  ctx.strokeStyle='rgba(124,138,160,.3)';ctx.lineWidth=1;ctx.setLineDash([2,4]);
+  ctx.beginPath();ctx.moveTo(sx(0),sy(0)+18);ctx.lineTo(sx(3),sy(0)+18);ctx.stroke();
+  ctx.fillStyle='#7c8aa0';ctx.font='11px Inter,Noto Sans SC';ctx.fillText('AB=3m',sx(1.5),sy(0)+32);
+  ctx.beginPath();ctx.moveTo(sx(3)+18,sy(0));ctx.lineTo(sx(3)+18,sy(2.5));ctx.stroke();
+  ctx.fillText('BC=2.5m',sx(3)+32,sy(1.25));
   ctx.setLineDash([]);
 
-  // Parallelogram MNPQ
+  // Parallelogram
   const para=paraPoly(x);
   ctx.fillStyle='rgba(250,204,21,.08)';ctx.strokeStyle='#facc15';ctx.lineWidth=2;ctx.setLineDash([6,3]);
   ctx.beginPath();ctx.moveTo(sx(para[0][0]),sy(para[0][1]));
   for(let i=1;i<4;i++)ctx.lineTo(sx(para[i][0]),sy(para[i][1]));
   ctx.closePath();ctx.fill();ctx.stroke();ctx.setLineDash([]);
 
-  const plabels=['M','N','Q','P'];
   const pcoords=[`M(${(-2+x).toFixed(1)},0)`,`N(${(1+x).toFixed(1)},0)`,`Q(${(3+x).toFixed(1)},2)`,`P(${x.toFixed(1)},2)`];
-  const poff=[[-4,14],[4,14],[4,-4],[-4,-4]];
+  const poff=[[-6,14],[4,14],[4,-4],[-6,-4]];
   ctx.fillStyle='#facc15';ctx.font='bold 11px Inter,Noto Sans SC';
   para.forEach((p,i)=>ctx.fillText(pcoords[i],sx(p[0])+poff[i][0],sy(p[1])+poff[i][1]));
-
-  // MN dimension
-  ctx.strokeStyle='rgba(250,204,21,.35)';ctx.setLineDash([2,4]);
-  const mxP=para[0][0],nxP=para[1][0];
-  ctx.beginPath();ctx.moveTo(sx(mxP),sy(0)-14);ctx.lineTo(sx(nxP),sy(0)-14);ctx.stroke();
-  ctx.fillStyle='#facc15';ctx.font='10px Inter,Noto Sans SC';ctx.fillText('MN=3m',sx((mxP+nxP)/2),sy(0)-20);
-  ctx.setLineDash([]);
 
   // Shaded intersection
   const inter=clipPolygon(para,rectPoly());
@@ -561,7 +545,6 @@ function draw(x){
     ctx.beginPath();ctx.moveTo(sx(inter[0][0]),sy(inter[0][1]));
     for(let i=1;i<inter.length;i++)ctx.lineTo(sx(inter[i][0]),sy(inter[i][1]));
     ctx.closePath();ctx.fill();ctx.stroke();
-
     const area=computeS(x);
     if(area>0.01){
       ctx.fillStyle='#4ade80';ctx.font='bold 14px Inter,Noto Sans SC';ctx.textAlign='center';
@@ -572,36 +555,31 @@ function draw(x){
   }
 
   // x arrow
-  if(x>-4&&x<8){
+  if(x>-6&&x<9){
     ctx.strokeStyle='rgba(250,204,21,.5)';ctx.lineWidth=1.5;
     ctx.beginPath();ctx.moveTo(sx(0),sy(-0.35));ctx.lineTo(sx(x),sy(-0.35));ctx.stroke();
     ctx.fillStyle='#facc15';ctx.font='bold 11px Inter,Noto Sans SC';
-    ctx.fillText('x='+x.toFixed(2),sx(x/2),sy(-0.35)-6);
+    ctx.fillText('x='+x.toFixed(2)+'m',sx(x/2),sy(-0.35)-6);
+    if(Math.abs(x)>0.3){
+      const ax=sx(x),ay=sy(-0.35);
+      ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ax-6,ay-4);ctx.lineTo(ax-6,ay+4);ctx.closePath();
+      ctx.fillStyle='rgba(250,204,21,.5)';ctx.fill();
+    }
   }
 
-  // Arrow heads on x line
-  if(Math.abs(x)>0.3){
-    const ax=sx(x),ay=sy(-0.35);
-    ctx.fillStyle='rgba(250,204,21,.5)';
-    ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ax-6,ay-4);ctx.lineTo(ax-6,ay+4);ctx.closePath();ctx.fill();
-  }
-
-  // Scale reference
+  // Scale ref
   ctx.fillStyle='#475569';ctx.font='9px Inter,Noto Sans SC';ctx.textAlign='right';
-  ctx.fillText('比例尺: 1m = '+SCALE+'px  |  拖动下方滑块平移遮阳伞',sx(XMAX),sy(-0.8));
+  ctx.fillText('比例尺 1m='+SCALE+'px  |  滑块: ← 左移  右移 →',sx(XMAX),sy(-0.8));
 }
 
-// Slider & UI
+// UI
 const slider=document.getElementById('xSlider');
 const xVal2=document.getElementById('xVal2');
 const sVal2=document.getElementById('sVal2');
-const statMax=document.getElementById('statMax');
-const statInit=document.getElementById('statInit');
-const statFig3=document.getElementById('statFig3');
 
 function update(x){
   const S=computeS(x);
-  slider.value=Math.max(-4,Math.min(6,x));
+  slider.value=Math.max(-5,Math.min(7,x));
   xVal2.textContent=x.toFixed(2)+' m';
   sVal2.textContent=S.toFixed(2)+' m²';
   sVal2.style.color=S>=4.9?'#facc15':S>=2?'#4ade80':'#f87171';
@@ -611,12 +589,12 @@ function update(x){
 slider.addEventListener('input',()=>update(parseFloat(slider.value)));
 document.getElementById('btnInit').addEventListener('click',()=>update(0));
 document.getElementById('btnFig3').addEventListener('click',()=>update(3));
-document.getElementById('btnLeft').addEventListener('click',()=>update(-4));
-document.getElementById('btnRight').addEventListener('click',()=>update(6));
+document.getElementById('btnLeft').addEventListener('click',()=>update(-5));
+document.getElementById('btnRight').addEventListener('click',()=>update(7));
 
-statMax.textContent='5.00';
-statInit.textContent=computeS(0).toFixed(2);
-statFig3.textContent=computeS(3).toFixed(2);
+document.getElementById('statMax').textContent='5.00';
+document.getElementById('statInit').textContent=computeS(0).toFixed(2);
+document.getElementById('statFig3').textContent=computeS(3).toFixed(2);
 
 update(0);
 
@@ -626,11 +604,11 @@ let animated=false;
 const obs=new MutationObserver(()=>{
   if(s3.classList.contains('on')&&!animated){
     animated=true;
-    let t=0;const dur=3200;
+    let t=0;const dur=3400;
     function anim(){
       t+=16;const p=Math.min(t/dur,1);
       const ease=p<0.5?p*2:2-p*2;
-      const xVal=-4+ease*10;
+      const xVal=-5+ease*12;
       slider.value=xVal;update(xVal);
       if(p<1)requestAnimationFrame(anim);else{update(1);slider.value=1}
     }
