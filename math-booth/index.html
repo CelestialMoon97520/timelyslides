@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>爱心义卖 · 遮阳区面积问题</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0b0f19; --surface:#111827; --surface2:#1a2332;
+  --text:#e8edf5; --muted:#7c8aa0;
+  --accent:#60a5fa; --accent2:#facc15; --amber:#f59e0b;
+  --green:#4ade80; --red:#f87171;
+  --glass:rgba(255,255,255,.03); --glass-border:rgba(255,255,255,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Inter','Noto Sans SC',sans-serif;
+  background:var(--bg);color:var(--text);
+  overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+
+/* Engine */
+.slide{
+  position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:3rem 2rem;opacity:0;pointer-events:none;transition:opacity .4s ease;
+  background:var(--bg);
+}
+.slide.on{opacity:1;pointer-events:auto}
+.slide.surface{background:var(--surface)}
+.slide>.wrap{width:100%;max-width:1050px}
+
+/* Nav */
+#dots{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;gap:8px}
+#dots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);cursor:pointer;transition:all .3s}
+#dots span.on{background:var(--accent2);box-shadow:0 0 10px rgba(250,204,21,.4);width:20px;border-radius:4px}
+#bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent2),var(--accent),var(--green));z-index:999;transition:width .35s ease;border-radius:0 2px 2px 0}
+
+/* Hero */
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 30% 50%,rgba(250,204,21,.06) 0%,transparent 60%),radial-gradient(ellipse 60% 80% at 70% 40%,rgba(96,165,250,.05) 0%,transparent 60%),linear-gradient(135deg,#1a1a2e 0%,#0b0f19 50%,#16213e 100%)}
+.hero-grid{position:absolute;inset:0;opacity:.02;background-image:linear-gradient(rgba(255,255,255,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.3) 1px,transparent 1px);background-size:80px 80px}
+.hero-content{position:relative;z-index:2;text-align:center}
+.hero-badge{display:inline-block;padding:5px 16px;border-radius:99px;border:1px solid rgba(96,165,250,.3);font-size:.75rem;letter-spacing:.2em;color:var(--accent);margin-bottom:1.8rem;font-weight:500}
+.hero-title{font-family:'Noto Serif SC',Georgia,serif;font-size:clamp(1.8rem,5vw,3.6rem);font-weight:900;line-height:1.15;color:#fff;margin-bottom:.3em}
+.hero-title .hl{color:var(--accent2)}
+.hero-title em{font-style:normal;display:block;font-size:.35em;font-weight:400;color:var(--muted);margin-top:.3em}
+.hero-scroll{color:var(--muted);font-size:.78rem;margin-top:2rem;animation:floatHint 2s ease-in-out infinite}
+@keyframes floatHint{0%,100%{opacity:.4;transform:translateY(0)}50%{opacity:1;transform:translateY(4px)}}
+
+/* Typography */
+.label{font-size:.72rem;letter-spacing:.22em;color:var(--accent);text-transform:uppercase;margin-bottom:.8rem;font-weight:600}
+.title{font-family:'Noto Serif SC',Georgia,serif;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;margin-bottom:.5rem;line-height:1.3}
+.title .hl{color:var(--accent2)}
+.sub{color:var(--muted);font-size:.9rem;max-width:600px;margin-bottom:1.5rem}
+.p{color:var(--muted);line-height:1.9;font-size:.88rem}
+.p strong{color:#fff}
+
+/* Cards */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
+.card{background:var(--glass);border:1px solid var(--glass-border);border-radius:14px;padding:1.5rem;transition:transform .3s}
+.card:hover{transform:translateY(-3px);border-color:rgba(96,165,250,.3)}
+.card h3{font-size:1rem;margin-bottom:.4rem;font-weight:600}
+.card .p{font-size:.82rem;line-height:1.65}
+
+/* Stats */
+.stat-strip{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;padding:1.5rem;background:var(--surface);border-radius:14px;margin:1rem 0}
+.stat-item{text-align:center}
+.stat-item .num{font-size:2rem;font-weight:900;background:linear-gradient(135deg,var(--accent2),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-item .num.g{background:linear-gradient(135deg,var(--green),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-item .num.o{background:linear-gradient(135deg,var(--amber),var(--red));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-item .lbl{font-size:.72rem;color:var(--muted);margin-top:4px}
+
+/* Canvas container */
+.canvas-wrap{background:var(--surface);border-radius:16px;padding:20px;text-align:center;margin:1rem 0;border:1px solid var(--glass-border)}
+.canvas-wrap canvas{max-width:100%;height:auto;display:block;margin:0 auto}
+
+/* Slider */
+.slider-group{display:flex;align-items:center;gap:14px;justify-content:center;margin:16px 0;flex-wrap:wrap}
+.slider-group input[type=range]{-webkit-appearance:none;width:300px;height:8px;border-radius:4px;background:var(--surface2);outline:none}
+.slider-group input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--accent2);cursor:pointer;box-shadow:0 0 12px rgba(250,204,21,.4)}
+.slider-group .slider-val{font-weight:900;color:var(--accent2);font-size:1.2rem;min-width:60px;text-align:center}
+.slider-group button{padding:8px 18px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass);color:var(--text);cursor:pointer;font-family:inherit;font-size:.82rem;transition:all .2s}
+.slider-group button:hover{background:var(--surface2);border-color:var(--accent)}
+.slider-group button.active{background:var(--accent2);color:#0b0f19;border-color:var(--accent2)}
+
+/* Area display */
+.area-display{text-align:center;font-size:1.1rem;margin:8px 0}
+.area-display .big{font-size:2.2rem;font-weight:900;color:var(--accent2)}
+
+/* Formula */
+.formula-box{background:var(--surface);border-left:3px solid var(--accent2);padding:1rem 1.5rem;border-radius:0 10px 10px 0;margin:1rem 0;font-family:'Noto Serif SC',serif}
+.formula-box code{color:var(--accent2);font-size:.95rem}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;margin:1rem 0;border-radius:10px;border:1px solid var(--glass-border)}
+.tbl{width:100%;border-collapse:collapse;font-size:.82rem}
+.tbl th{background:var(--surface2);color:var(--accent);padding:10px 14px;text-align:center;font-weight:600;font-size:.72rem;letter-spacing:.04em}
+.tbl td{padding:9px 14px;border-bottom:1px solid var(--glass-border);text-align:center}
+.tbl tr:last-child td{border-bottom:none}
+
+/* Highlight */
+.hl-box{background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;padding:1.2rem 1.6rem;margin:.8rem 0}
+.hl-box h4{color:var(--accent2);margin-bottom:.5rem}
+
+.foot{text-align:center;color:var(--muted);font-size:.75rem;padding:2rem 0 1rem}
+
+@media(max-width:640px){
+  .slide{padding:2rem 1rem}
+  .slider-group input[type=range]{width:180px}
+}
+</style>
+</head>
+<body>
+
+<div id="bar"></div><div id="dots"></div>
+
+<!-- ═══ 1: HERO ═══ -->
+<div class="slide on" id="s1">
+  <div class="hero-bg"></div><div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">树人中学 · 九（5）班</div>
+    <h1 class="hero-title"><span class="hl">爱心义卖</span>遮阳区问题<em>平行四边形的平移与面积最值</em></h1>
+    <div class="hero-scroll">按 → 开始上课</div>
+  </div>
+</div>
+
+<!-- ═══ 2: 题目 ═══ -->
+<div class="slide surface" id="s2">
+  <div class="wrap">
+    <div class="label">01 · 题目</div>
+    <h2 class="title">爱心义卖 · <span class="hl">遮阳区面积问题</span></h2>
+    <div class="grid2" style="margin-top:1rem">
+      <div>
+        <div class="hl-box">
+          <h4>📐 已知条件</h4>
+          <p class="p">矩形 ABCD：AB=<strong>3m</strong>，BC=<strong>2.5m</strong><br>
+          平行四边形 MNPQ：MN=<strong>3m</strong><br>
+          初始：P 在 AD 上，AN=<strong>1m</strong>，AP=<strong>2m</strong><br>
+          遮阳伞只能<strong>左右平移</strong>，形状大小不变</p>
+        </div>
+      </div>
+      <div>
+        <div class="hl-box">
+          <h4>❓ 四个问题</h4>
+          <p class="p">(1) 直观感知：S 随 x 如何变化？<br>
+          (2) 初步探究：图3的 x 与 S？<br>
+          (3) 深入研究：S 关于 x 的解析式？<br>
+          (4) 问题解决：最大面积时移动了多少？</p>
+        </div>
+      </div>
+    </div>
+    <p class="p" style="text-align:center;margin-top:1rem">设遮阳区面积为 S m²，向右移动距离为 x m</p>
+  </div>
+</div>
+
+<!-- ═══ 3: 动态演示 ═══ -->
+<div class="slide" id="s3">
+  <div class="wrap" style="text-align:center">
+    <div class="label">🎮 动态演示</div>
+    <h2 class="title">拖动滑块，<span class="hl">直观感受</span>面积变化</h2>
+    <div class="canvas-wrap">
+      <canvas id="mainCanvas" width="700" height="400"></canvas>
+    </div>
+    <div class="slider-group">
+      <button id="btnInit">初始位置</button>
+      <input type="range" id="xSlider" min="0" max="4" step="0.02" value="0">
+      <button id="btnFig3">图3位置</button>
+      <span class="slider-val">x = <strong id="xVal">0.00</strong> m</span>
+    </div>
+    <div class="area-display">
+      遮阳区面积 S = <span class="big" id="sVal">4.00</span> m²
+    </div>
+    <div class="stat-strip" style="margin-top:.5rem">
+      <div class="stat-item"><div class="num" id="statMax">5.00</div><div class="lbl">最大面积 m²</div></div>
+      <div class="stat-item"><div class="num g" id="statInit">4.00</div><div class="lbl">初始面积 m²</div></div>
+      <div class="stat-item"><div class="num o" id="statFig3">2.00</div><div class="lbl">图3面积 m²</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 4: 问题(1)(2) ═══ -->
+<div class="slide surface" id="s4">
+  <div class="wrap">
+    <div class="label">02 · 解答</div>
+    <h2 class="title">问题(1)(2)：<span class="hl">直观感知 + 初步探究</span></h2>
+    <div class="grid2" style="margin-top:1rem">
+      <div class="card" style="border-left:3px solid var(--accent2)">
+        <h3>(1) S 随 x 如何变化？</h3>
+        <div class="p">
+          通过动态演示观察：<br><br>
+          x 从 0→3 过程中，S <strong style="color:var(--accent2)">先增大后减小</strong><br>
+          x=0 时 S=4<br>
+          x≈1 时 S 达到最大 5<br>
+          x=3（图3）时 S=2
+        </div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent)">
+        <h3>(2) 图3情形的 x 与 S</h3>
+        <div class="p">
+          图3：点 P 落在 BC 上<br>
+          BC 是矩形右边界，x=3<br><br>
+          <strong>x = 3 m</strong><br>
+          此时遮阳区为三角形：<br>
+          <strong style="color:var(--accent2)">S = 2 m²</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 5: 问题(3) ═══ -->
+<div class="slide" id="s5">
+  <div class="wrap">
+    <div class="label">03 · 解答</div>
+    <h2 class="title">问题(3)：<span class="hl">S 关于 x 的解析式</span></h2>
+    <p class="sub">从图3（x=3）继续右移至 M 与 A 重合（x=2）</p>
+    <div class="formula-box" style="margin-top:1rem">
+      <p class="p">当 <strong>2 ≤ x ≤ 3</strong> 时：</p>
+      <code style="font-size:1.2rem">S(x) = 8 − 2x</code>
+      <p class="p" style="margin-top:.5rem">遮阳区为梯形，面积随 x 线性减小</p>
+    </div>
+    <div class="tbl-wrap" style="margin-top:1rem">
+      <table class="tbl">
+        <thead><tr><th>x (m)</th><th>遮阳区形状</th><th>S (m²)</th><th>公式</th></tr></thead>
+        <tbody>
+          <tr><td>0 ≤ x ≤ 2</td><td>五边形 → 梯形</td><td style="color:var(--accent2)">4+2x−x²</td><td>二次函数</td></tr>
+          <tr style="background:var(--surface)"><td>2 ≤ x ≤ 3</td><td>梯形 → 三角形</td><td style="color:var(--accent2)">8−2x</td><td>线性递减</td></tr>
+          <tr><td>x ≥ 4</td><td>无重叠</td><td style="color:var(--red)">0</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 6: 问题(4) ═══ -->
+<div class="slide surface" id="s6">
+  <div class="wrap">
+    <div class="label">04 · 解答</div>
+    <h2 class="title">问题(4)：<span class="hl">面积最大</span>时移动了多少？</h2>
+    <div class="grid2" style="margin-top:1rem">
+      <div class="card" style="border-top:3px solid var(--accent2)">
+        <h3>📈 求最大值</h3>
+        <div class="p">
+          S(x) = 4 + 2x − x²（0≤x≤2）<br>
+          对称轴：x = −b/(2a) = <strong>1</strong><br><br>
+          S(0) = 4<br>
+          <strong style="color:var(--accent2)">S(1) = 5</strong> ← 最大值<br>
+          S(2) = 4
+        </div>
+      </div>
+      <div class="card" style="border-top:3px solid var(--green)">
+        <h3>✅ 结论</h3>
+        <div class="p">
+          当遮阳区面积最大时：<br><br>
+          <strong style="font-size:1.3rem;color:var(--accent2)">x = 1 米</strong><br><br>
+          最大面积：<strong style="font-size:1.3rem;color:var(--green)">S = 5 m²</strong><br><br>
+          此时遮阳伞刚好有一半在矩形正上方
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 7: OUTRO ═══ -->
+<div class="slide" id="s7">
+  <div class="hero-bg"></div>
+  <div class="wrap" style="position:relative;z:2;text-align:center">
+    <h2 class="title" style="font-size:2rem;margin-bottom:1.5rem">🎉 总结</h2>
+    <div class="stat-strip">
+      <div class="stat-item"><div class="num">5</div><div class="lbl">最大面积 m²</div></div>
+      <div class="stat-item"><div class="num g">1</div><div class="lbl">最佳位置 x(m)</div></div>
+      <div class="stat-item"><div class="num" style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">二次</div><div class="lbl">函数类型</div></div>
+    </div>
+    <p class="p" style="max-width:600px;margin:1.5rem auto;font-size:.95rem">
+      核心方法：<strong>建立坐标系 → 确定交点 → 分段积分求面积 → 二次函数求最值</strong><br><br>
+      几何直观 + 代数计算，缺一不可。
+    </p>
+    <div class="foot">树人中学 · 九（5）班数学探究 &nbsp;·&nbsp; Powered by <strong>DeepSeek</strong></div>
+  </div>
+</div>
+
+<!-- ═══════ ENGINE ═══════ -->
+<script>
+// ===== SLIDE ENGINE =====
+const slides=document.querySelectorAll('.slide'),total=slides.length;
+const dotsEl=document.getElementById('dots'),bar=document.getElementById('bar');
+let idx=0,lock=false;
+for(let i=0;i<total;i++){const d=document.createElement('span');d.addEventListener('click',()=>go(i));dotsEl.appendChild(d)}
+const dots=dotsEl.querySelectorAll('span');
+function go(i){if(i<0||i>=total||lock)return;lock=true;slides.forEach((s,j)=>{s.classList.toggle('on',j===i);if(j===i)s.scrollTop=0});dots.forEach((d,j)=>d.classList.toggle('on',j===i));bar.style.width=((i+1)/total*100)+'%';idx=i;setTimeout(()=>lock=false,400)}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){e.preventDefault();go(idx+1)}else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();go(idx-1)}else if(e.key==='Home'){e.preventDefault();go(0)}else if(e.key==='End'){e.preventDefault();go(total-1)}});
+let ty=0;document.addEventListener('touchstart',e=>{ty=e.touches[0].clientY},{passive:true});document.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientY-ty;if(Math.abs(d)>40)go(d>0?idx-1:idx+1)});
+document.addEventListener('wheel',e=>{if(lock)return;if(e.deltaY>20)go(idx+1);else if(e.deltaY<-20)go(idx-1)},{passive:true});
+
+// ===== CANVAS =====
+(function(){
+const canvas=document.getElementById('mainCanvas');
+if(!canvas)return;
+const ctx=canvas.getContext('2d');
+const W=canvas.width,H=canvas.height;
+
+// Coordinate system: rectangle [0,3]×[0,2.5] mapped to canvas
+// Leave margins
+const mx=80,my=60,rw=W-160,rh=H-120;
+const toX=(x)=>mx+(x/3)*rw;
+const toY=(y)=>my+rh-(y/2.5)*rh; // flip Y (canvas Y goes down, math Y goes up)
+
+// Rectangle ABCD: A(0,0), B(3,0), C(3,2.5), D(0,2.5)
+// Parallelogram at offset x: M(-2+x,0), N(1+x,0), P(x,2), Q(3+x,2)
+
+function rectPoly(){return[[0,0],[3,0],[3,2.5],[0,2.5]]}
+
+function paraPoly(x){
+  return [[-2+x,0],[1+x,0],[3+x,2],[x,2]]; // M,N,Q,P (clockwise)
+}
+
+// Sutherland-Hodgman polygon clipping: clip subject against a convex clip polygon
+function clipPolygon(subject,clip){
+  let output=[...subject];
+  const n=clip.length;
+  for(let i=0;i<n;i++){
+    const input=[...output];
+    output=[];
+    if(input.length===0)break;
+    const a=clip[i],b=clip[(i+1)%n];
+    for(let j=0;j<input.length;j++){
+      const p=input[j],q=input[(j+1)%input.length];
+      const insideP=isInside(p,a,b),insideQ=isInside(q,a,b);
+      if(insideP&&insideQ){output.push(q)}
+      else if(insideP&&!insideQ){output.push(intersect(p,q,a,b))}
+      else if(!insideP&&insideQ){output.push(intersect(p,q,a,b));output.push(q)}
+    }
+  }
+  return output;
+}
+
+function isInside(p,a,b){
+  // Cross product: (b-a) × (p-a) > 0 means p is to the left of directed edge a→b
+  return (b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])>=0;
+}
+
+function intersect(p,q,a,b){
+  const A1=q[1]-p[1],B1=p[0]-q[0],C1=A1*p[0]+B1*p[1];
+  const A2=b[1]-a[1],B2=a[0]-b[0],C2=A2*a[0]+B2*a[1];
+  const det=A1*B2-A2*B1;
+  if(Math.abs(det)<1e-10)return p;
+  return [(B2*C1-B1*C2)/det,(A1*C2-A2*C1)/det];
+}
+
+function polygonArea(poly){
+  let area=0;const n=poly.length;
+  for(let i=0;i<n;i++){const j=(i+1)%n;area+=poly[i][0]*poly[j][1];area-=poly[j][0]*poly[i][1]}
+  return Math.abs(area)/2;
+}
+
+function computeS(x){
+  const para=paraPoly(x);
+  const rect=rectPoly();
+  const inter=clipPolygon(para,rect);
+  return polygonArea(inter);
+}
+
+// Draw
+function draw(x){
+  ctx.clearRect(0,0,W,H);
+
+  // Background grid
+  ctx.strokeStyle='rgba(124,138,160,.08)';ctx.lineWidth=.5;
+  for(let i=0;i<=3;i++){ctx.beginPath();ctx.moveTo(toX(i),my);ctx.lineTo(toX(i),my+rh);ctx.stroke()}
+  for(let i=0;i<=2.5;i+=.5){ctx.beginPath();ctx.moveTo(mx,toY(i));ctx.lineTo(mx+rw,toY(i));ctx.stroke()}
+
+  // Rectangle ABCD
+  ctx.fillStyle='rgba(96,165,250,.08)';ctx.strokeStyle='rgba(96,165,250,.6)';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(toX(0),toY(0));ctx.lineTo(toX(3),toY(0));ctx.lineTo(toX(3),toY(2.5));ctx.lineTo(toX(0),toY(2.5));ctx.closePath();ctx.fill();ctx.stroke();
+
+  // Labels
+  ctx.fillStyle='#60a5fa';ctx.font='bold 15px Inter,Noto Sans SC';ctx.textAlign='center';
+  ctx.fillText('A',toX(0)-16,toY(0)+18);ctx.fillText('B',toX(3)+16,toY(0)+18);
+  ctx.fillText('C',toX(3)+16,toY(2.5)-6);ctx.fillText('D',toX(0)-16,toY(2.5)-6);
+
+  // Parallelogram MNPQ
+  const para=paraPoly(x);
+  ctx.fillStyle='rgba(250,204,21,.12)';ctx.strokeStyle='rgba(250,204,21,.7)';ctx.lineWidth=2;ctx.setLineDash([6,3]);
+  ctx.beginPath();ctx.moveTo(toX(para[0][0]),toY(para[0][1]));
+  for(let i=1;i<4;i++)ctx.lineTo(toX(para[i][0]),toY(para[i][1]));
+  ctx.closePath();ctx.fill();ctx.stroke();ctx.setLineDash([]);
+
+  // Label parallelogram vertices
+  const labels=['M','N','Q','P'];
+  ctx.fillStyle='#facc15';ctx.font='bold 14px Inter,Noto Sans SC';
+  para.forEach((p,i)=>{
+    let ox=0,oy=0;
+    if(i===0)ox=-16,oy=16;else if(i===1)ox=14,oy=16;else if(i===2)ox=14,oy=-6;else ox=-16,oy=-6;
+    ctx.fillText(labels[i],toX(p[0])+ox,toY(p[1])+oy);
+  });
+
+  // Shaded intersection
+  const rect=rectPoly();
+  const inter=clipPolygon(para,rect);
+  if(inter.length>=3){
+    ctx.fillStyle='rgba(74,222,128,.25)';ctx.strokeStyle='rgba(74,222,128,.8)';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(toX(inter[0][0]),toY(inter[0][1]));
+    for(let i=1;i<inter.length;i++)ctx.lineTo(toX(inter[i][0]),toY(inter[i][1]));
+    ctx.closePath();ctx.fill();ctx.stroke();
+
+    // Fill with pattern
+    ctx.fillStyle='rgba(74,222,128,.15)';
+    const area=computeS(x);
+    ctx.fillStyle='#4ade80';ctx.font='bold 16px Inter,Noto Sans SC';ctx.textAlign='center';
+    const cx=inter.reduce((s,p)=>s+p[0],0)/inter.length;
+    const cy=inter.reduce((s,p)=>s+p[1],0)/inter.length;
+    ctx.fillText(`S=${area.toFixed(2)}m²`,toX(cx),toY(cy));
+  }
+
+  // Dimension lines
+  ctx.strokeStyle='rgba(124,138,160,.4)';ctx.lineWidth=1;ctx.setLineDash([2,4]);
+  // AB dimension
+  ctx.beginPath();ctx.moveTo(toX(0),toY(0)+24);ctx.lineTo(toX(3),toY(0)+24);ctx.stroke();
+  ctx.fillStyle='#7c8aa0';ctx.font='12px Inter,Noto Sans SC';ctx.fillText('3m',toX(1.5),toY(0)+40);
+  // BC dimension
+  ctx.beginPath();ctx.moveTo(toX(3)+24,toY(0));ctx.lineTo(toX(3)+24,toY(2.5));ctx.stroke();
+  ctx.fillText('2.5m',toX(3)+40,toY(1.25));
+  // x distance
+  ctx.strokeStyle='rgba(250,204,21,.5)';
+  ctx.beginPath();ctx.moveTo(toX(0),toY(0)-28);ctx.lineTo(toX(x),toY(0)-28);ctx.stroke();
+  ctx.fillStyle='#facc15';ctx.fillText(`x=${x.toFixed(1)}`,toX(x/2),toY(0)-36);
+  ctx.setLineDash([]);
+}
+
+// Slider & UI
+const slider=document.getElementById('xSlider');
+const xVal=document.getElementById('xVal');
+const sVal=document.getElementById('sVal');
+const statMax=document.getElementById('statMax');
+const statInit=document.getElementById('statInit');
+const statFig3=document.getElementById('statFig3');
+const btnInit=document.getElementById('btnInit');
+const btnFig3=document.getElementById('btnFig3');
+
+function update(x){
+  const S=computeS(x);
+  slider.value=x;
+  xVal.textContent=x.toFixed(2);
+  sVal.textContent=S.toFixed(2);
+  sVal.style.color=S>=4.9?'#facc15':S>=3?'#e8edf5':'#f87171';
+  draw(x);
+}
+
+slider.addEventListener('input',()=>update(parseFloat(slider.value)));
+btnInit.addEventListener('click',()=>update(0));
+btnFig3.addEventListener('click',()=>update(3));
+
+// Stats
+statMax.textContent='5.00';
+statInit.textContent=computeS(0).toFixed(2);
+statFig3.textContent=computeS(3).toFixed(2);
+
+// Init
+update(0);
+
+// Animate to max when slide becomes active
+const s3=document.getElementById('s3');
+let animated=false;
+const obs=new MutationObserver(()=>{
+  if(s3.classList.contains('on')&&!animated){
+    animated=true;
+    let t=0;const dur=2000;
+    function anim(){
+      t+=16;const p=Math.min(t/dur,1);
+      // Ease in-out: x goes 0→1→0 for a full demo
+      const ease=Math.sin(p*Math.PI*2)*0.5+0.5;
+      const xVal=ease*3;
+      slider.value=xVal;update(xVal);
+      if(p<1)requestAnimationFrame(anim);
+      else{update(1);slider.value=1}
+    }
+    setTimeout(anim,400);
+  }
+});
+obs.observe(s3,{attributes:true,attributeFilter:['class']});
+})();
+
+go(0);
+</script>
+</body>
+</html>
