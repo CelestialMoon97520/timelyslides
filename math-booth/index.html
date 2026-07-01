@@ -71,9 +71,25 @@ body{
 .stat-item .num.o{background:linear-gradient(135deg,var(--amber),var(--red));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .stat-item .lbl{font-size:.72rem;color:var(--muted);margin-top:4px}
 
-/* Canvas container */
-.canvas-wrap{background:var(--surface);border-radius:16px;padding:20px;text-align:center;margin:1rem 0;border:1px solid var(--glass-border)}
+/* Canvas + Data side-by-side */
+.demo-layout{display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start;margin:1rem 0}
+.canvas-wrap{background:var(--surface);border-radius:16px;padding:16px;text-align:center;border:1px solid var(--glass-border)}
 .canvas-wrap canvas{max-width:100%;height:auto;display:block;margin:0 auto}
+.data-panel{display:flex;flex-direction:column;gap:10px}
+.data-card{background:var(--surface);border:1px solid var(--glass-border);border-radius:12px;padding:14px 16px}
+.data-card h4{font-size:.78rem;color:var(--accent);margin-bottom:8px;letter-spacing:.05em}
+.data-card .row{display:flex;justify-content:space-between;padding:4px 0;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,.04)}
+.data-card .row:last-child{border-bottom:none}
+.data-card .row .dv{color:var(--accent2);font-weight:700}
+.data-card .row .dv.b{color:var(--accent)}
+.data-card .row .dv.g{color:var(--green)}
+.data-card .row .dv.r{color:var(--red)}
+
+@media(max-width:860px){
+  .demo-layout{grid-template-columns:1fr}
+  .data-panel{flex-direction:row;flex-wrap:wrap}
+  .data-card{flex:1 1 200px;min-width:160px}
+}
 
 /* Slider */
 .slider-group{display:flex;align-items:center;gap:14px;justify-content:center;margin:16px 0;flex-wrap:wrap}
@@ -131,50 +147,73 @@ body{
     <div class="label">01 · 题目</div>
     <h2 class="title">爱心义卖 · <span class="hl">遮阳区面积问题</span></h2>
     <div class="grid2" style="margin-top:1rem">
-      <div>
-        <div class="hl-box">
-          <h4>📐 已知条件</h4>
-          <p class="p">矩形 ABCD：AB=<strong>3m</strong>，BC=<strong>2.5m</strong><br>
-          平行四边形 MNPQ：MN=<strong>3m</strong><br>
-          初始：P 在 AD 上，AN=<strong>1m</strong>，AP=<strong>2m</strong><br>
-          遮阳伞只能<strong>左右平移</strong>，形状大小不变</p>
-        </div>
+      <div class="hl-box">
+        <h4>📐 已知条件</h4>
+        <p class="p">矩形 ABCD：AB=<strong>3m</strong>，BC=<strong>2.5m</strong><br>
+        平行四边形 MNPQ：MN=<strong>3m</strong>，高 <strong>2m</strong><br>
+        初始位置：P 在 AD 上，AN=<strong>1m</strong>，AP=<strong>2m</strong><br>
+        遮阳伞只能<strong>左右平移</strong>，形状大小不变<br>
+        <span style="color:var(--muted)">（MN 始终在 AB 所在直线上）</span></p>
       </div>
-      <div>
-        <div class="hl-box">
-          <h4>❓ 四个问题</h4>
-          <p class="p">(1) 直观感知：S 随 x 如何变化？<br>
-          (2) 初步探究：图3的 x 与 S？<br>
-          (3) 深入研究：S 关于 x 的解析式？<br>
-          (4) 问题解决：最大面积时移动了多少？</p>
-        </div>
+      <div class="hl-box">
+        <h4>❓ 四个问题</h4>
+        <p class="p">(1) 直观感知：S 随 x 如何变化？<br>
+        (2) 初步探究：图3情形的 x 与 S？<br>
+        (3) 深入研究：从图3到 M 与 A 重合，S 关于 x 的解析式？<br>
+        (4) 问题解决：遮阳区面积最大时，x 是多少？</p>
       </div>
     </div>
-    <p class="p" style="text-align:center;margin-top:1rem">设遮阳区面积为 S m²，向右移动距离为 x m</p>
+    <p class="p" style="text-align:center;margin-top:1rem">设遮阳区面积为 <strong>S</strong> m²，平行四边形 MNPQ 从初始时向右移动的距离为 <strong>x</strong> m</p>
   </div>
 </div>
 
 <!-- ═══ 3: 动态演示 ═══ -->
 <div class="slide" id="s3">
-  <div class="wrap" style="text-align:center">
+  <div class="wrap">
     <div class="label">🎮 动态演示</div>
     <h2 class="title">拖动滑块，<span class="hl">直观感受</span>面积变化</h2>
-    <div class="canvas-wrap">
-      <canvas id="mainCanvas" width="700" height="400"></canvas>
+    <div class="demo-layout">
+      <div class="canvas-wrap">
+        <canvas id="mainCanvas" width="600" height="380"></canvas>
+      </div>
+      <div class="data-panel">
+        <div class="data-card">
+          <h4>📐 矩形 ABCD</h4>
+          <div class="row"><span>AB（宽）</span><span class="dv b">3 m</span></div>
+          <div class="row"><span>BC（高）</span><span class="dv b">2.5 m</span></div>
+          <div class="row"><span>面积</span><span class="dv">7.5 m²</span></div>
+        </div>
+        <div class="data-card">
+          <h4>🔷 平行四边形 MNPQ</h4>
+          <div class="row"><span>MN（底）</span><span class="dv b">3 m</span></div>
+          <div class="row"><span>高</span><span class="dv b">2 m</span></div>
+          <div class="row"><span>面积</span><span class="dv">6 m²</span></div>
+          <div class="row"><span>斜边斜率</span><span class="dv">45°</span></div>
+        </div>
+        <div class="data-card">
+          <h4>📏 初始条件</h4>
+          <div class="row"><span>AN</span><span class="dv b">1 m</span></div>
+          <div class="row"><span>AP</span><span class="dv b">2 m</span></div>
+          <div class="row"><span>P 在 AD 上</span><span class="dv g">✔</span></div>
+        </div>
+        <div class="data-card" style="border-color:rgba(250,204,21,.3)">
+          <h4>🎯 当前位置</h4>
+          <div class="row"><span>移动距离 x</span><span class="dv" id="xVal2" style="font-size:1.3rem">0.00 m</span></div>
+          <div class="row"><span>遮阳区面积 S</span><span class="dv g" id="sVal2" style="font-size:1.3rem">4.00 m²</span></div>
+        </div>
+      </div>
     </div>
     <div class="slider-group">
-      <button id="btnInit">初始位置</button>
-      <input type="range" id="xSlider" min="0" max="4" step="0.02" value="0">
-      <button id="btnFig3">图3位置</button>
-      <span class="slider-val">x = <strong id="xVal">0.00</strong> m</span>
-    </div>
-    <div class="area-display">
-      遮阳区面积 S = <span class="big" id="sVal">4.00</span> m²
+      <button id="btnLeft">◀ 未进场</button>
+      <button id="btnInit">初始</button>
+      <input type="range" id="xSlider" min="-2.5" max="5.5" step="0.02" value="0">
+      <button id="btnFig3">图3</button>
+      <button id="btnRight">完全离开 ▶</button>
     </div>
     <div class="stat-strip" style="margin-top:.5rem">
-      <div class="stat-item"><div class="num" id="statMax">5.00</div><div class="lbl">最大面积 m²</div></div>
-      <div class="stat-item"><div class="num g" id="statInit">4.00</div><div class="lbl">初始面积 m²</div></div>
-      <div class="stat-item"><div class="num o" id="statFig3">2.00</div><div class="lbl">图3面积 m²</div></div>
+      <div class="stat-item"><div class="num" id="statMax">5.00</div><div class="lbl">最大面积 m²<br>(x=1)</div></div>
+      <div class="stat-item"><div class="num g" id="statInit">4.00</div><div class="lbl">初始面积 m²<br>(x=0)</div></div>
+      <div class="stat-item"><div class="num o" id="statFig3">2.00</div><div class="lbl">图3面积 m²<br>(x=3)</div></div>
     </div>
   </div>
 </div>
@@ -300,52 +339,46 @@ if(!canvas)return;
 const ctx=canvas.getContext('2d');
 const W=canvas.width,H=canvas.height;
 
-// Coordinate system: rectangle [0,3]×[0,2.5] mapped to canvas
-// Leave margins
-const mx=80,my=60,rw=W-160,rh=H-120;
-const toX=(x)=>mx+(x/3)*rw;
-const toY=(y)=>my+rh-(y/2.5)*rh; // flip Y (canvas Y goes down, math Y goes up)
-
-// Rectangle ABCD: A(0,0), B(3,0), C(3,2.5), D(0,2.5)
-// Parallelogram at offset x: M(-2+x,0), N(1+x,0), P(x,2), Q(3+x,2)
+// Coordinate system: show x from -3 to 7, y from -0.5 to 3
+const XMIN=-3,XMAX=7,YMIN=-0.5,YMAX=3;
+const mx=55,my=35,rw=W-110,rh=H-70;
+const toX=(v)=>mx+((v-XMIN)/(XMAX-XMIN))*rw;
+const toY=(v)=>my+rh-((v-YMIN)/(YMAX-YMIN))*rh;
 
 function rectPoly(){return[[0,0],[3,0],[3,2.5],[0,2.5]]}
-
 function paraPoly(x){
-  return [[-2+x,0],[1+x,0],[3+x,2],[x,2]]; // M,N,Q,P (clockwise)
+  return [[-2+x,0],[1+x,0],[3+x,2],[x,2]]; // M,N,Q,P
 }
 
-// Sutherland-Hodgman polygon clipping: clip subject against a convex clip polygon
+// Polygon clipping
 function clipPolygon(subject,clip){
-  let output=[...subject];
-  const n=clip.length;
+  let output=[...subject];const n=clip.length;
   for(let i=0;i<n;i++){
-    const input=[...output];
-    output=[];
+    const input=[...output];output=[];
     if(input.length===0)break;
     const a=clip[i],b=clip[(i+1)%n];
     for(let j=0;j<input.length;j++){
       const p=input[j],q=input[(j+1)%input.length];
-      const insideP=isInside(p,a,b),insideQ=isInside(q,a,b);
+      const insideP=(b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])>=0;
+      const insideQ=(b[0]-a[0])*(q[1]-a[1])-(b[1]-a[1])*(q[0]-a[0])>=0;
       if(insideP&&insideQ){output.push(q)}
-      else if(insideP&&!insideQ){output.push(intersect(p,q,a,b))}
-      else if(!insideP&&insideQ){output.push(intersect(p,q,a,b));output.push(q)}
+      else if(insideP&&!insideQ){
+        const A1=q[1]-p[1],B1=p[0]-q[0],C1=A1*p[0]+B1*p[1];
+        const A2=b[1]-a[1],B2=a[0]-b[0],C2=A2*a[0]+B2*a[1];
+        const det=A1*B2-A2*B1;
+        if(Math.abs(det)>1e-10)output.push([(B2*C1-B1*C2)/det,(A1*C2-A2*C1)/det]);
+        else output.push(p);
+      }
+      else if(!insideP&&insideQ){
+        const A1=q[1]-p[1],B1=p[0]-q[0],C1=A1*p[0]+B1*p[1];
+        const A2=b[1]-a[1],B2=a[0]-b[0],C2=A2*a[0]+B2*a[1];
+        const det=A1*B2-A2*B1;
+        if(Math.abs(det)>1e-10)output.push([(B2*C1-B1*C2)/det,(A1*C2-A2*C1)/det]);
+        output.push(q);
+      }
     }
   }
   return output;
-}
-
-function isInside(p,a,b){
-  // Cross product: (b-a) × (p-a) > 0 means p is to the left of directed edge a→b
-  return (b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0])>=0;
-}
-
-function intersect(p,q,a,b){
-  const A1=q[1]-p[1],B1=p[0]-q[0],C1=A1*p[0]+B1*p[1];
-  const A2=b[1]-a[1],B2=a[0]-b[0],C2=A2*a[0]+B2*a[1];
-  const det=A1*B2-A2*B1;
-  if(Math.abs(det)<1e-10)return p;
-  return [(B2*C1-B1*C2)/det,(A1*C2-A2*C1)/det];
 }
 
 function polygonArea(poly){
@@ -355,101 +388,121 @@ function polygonArea(poly){
 }
 
 function computeS(x){
-  const para=paraPoly(x);
-  const rect=rectPoly();
-  const inter=clipPolygon(para,rect);
-  return polygonArea(inter);
+  return polygonArea(clipPolygon(paraPoly(x),rectPoly()));
 }
 
-// Draw
 function draw(x){
   ctx.clearRect(0,0,W,H);
 
-  // Background grid
-  ctx.strokeStyle='rgba(124,138,160,.08)';ctx.lineWidth=.5;
-  for(let i=0;i<=3;i++){ctx.beginPath();ctx.moveTo(toX(i),my);ctx.lineTo(toX(i),my+rh);ctx.stroke()}
-  for(let i=0;i<=2.5;i+=.5){ctx.beginPath();ctx.moveTo(mx,toY(i));ctx.lineTo(mx+rw,toY(i));ctx.stroke()}
+  // Ground grid
+  ctx.strokeStyle='rgba(124,138,160,.06)';ctx.lineWidth=.5;
+  for(let i=Math.ceil(XMIN);i<=XMAX;i++){
+    ctx.beginPath();ctx.moveTo(toX(i),my);ctx.lineTo(toX(i),my+rh);ctx.stroke();
+  }
+  for(let i=0;i<=3;i+=.5){
+    ctx.beginPath();ctx.moveTo(mx,toY(i));ctx.lineTo(mx+rw,toY(i));ctx.stroke();
+  }
+
+  // Ground line (y=0, line AB)
+  ctx.strokeStyle='rgba(124,138,160,.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(mx,toY(0));ctx.lineTo(mx+rw,toY(0));ctx.stroke();
 
   // Rectangle ABCD
-  ctx.fillStyle='rgba(96,165,250,.08)';ctx.strokeStyle='rgba(96,165,250,.6)';ctx.lineWidth=2.5;
-  ctx.beginPath();ctx.moveTo(toX(0),toY(0));ctx.lineTo(toX(3),toY(0));ctx.lineTo(toX(3),toY(2.5));ctx.lineTo(toX(0),toY(2.5));ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(96,165,250,.06)';ctx.strokeStyle='rgba(96,165,250,.55)';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(toX(0),toY(0));ctx.lineTo(toX(3),toY(0));
+  ctx.lineTo(toX(3),toY(2.5));ctx.lineTo(toX(0),toY(2.5));ctx.closePath();ctx.fill();ctx.stroke();
 
-  // Labels
-  ctx.fillStyle='#60a5fa';ctx.font='bold 15px Inter,Noto Sans SC';ctx.textAlign='center';
-  ctx.fillText('A',toX(0)-16,toY(0)+18);ctx.fillText('B',toX(3)+16,toY(0)+18);
-  ctx.fillText('C',toX(3)+16,toY(2.5)-6);ctx.fillText('D',toX(0)-16,toY(2.5)-6);
+  // Rectangle labels
+  ctx.fillStyle='#60a5fa';ctx.font='bold 14px Inter,Noto Sans SC';ctx.textAlign='center';
+  ctx.fillText('A(0,0)',toX(0)-30,toY(0)+16);
+  ctx.fillText('B(3,0)',toX(3)+30,toY(0)+16);
+  ctx.fillText('C(3,2.5)',toX(3)+34,toY(2.5)+4);
+  ctx.fillText('D(0,2.5)',toX(0)-32,toY(2.5)+4);
 
   // Parallelogram MNPQ
   const para=paraPoly(x);
-  ctx.fillStyle='rgba(250,204,21,.12)';ctx.strokeStyle='rgba(250,204,21,.7)';ctx.lineWidth=2;ctx.setLineDash([6,3]);
+  ctx.fillStyle='rgba(250,204,21,.08)';ctx.strokeStyle='rgba(250,204,21,.6)';ctx.lineWidth=2;ctx.setLineDash([6,3]);
   ctx.beginPath();ctx.moveTo(toX(para[0][0]),toY(para[0][1]));
   for(let i=1;i<4;i++)ctx.lineTo(toX(para[i][0]),toY(para[i][1]));
   ctx.closePath();ctx.fill();ctx.stroke();ctx.setLineDash([]);
 
-  // Label parallelogram vertices
+  // Parallelogram vertex labels
   const labels=['M','N','Q','P'];
-  ctx.fillStyle='#facc15';ctx.font='bold 14px Inter,Noto Sans SC';
+  ctx.fillStyle='#facc15';ctx.font='bold 13px Inter,Noto Sans SC';
   para.forEach((p,i)=>{
     let ox=0,oy=0;
-    if(i===0)ox=-16,oy=16;else if(i===1)ox=14,oy=16;else if(i===2)ox=14,oy=-6;else ox=-16,oy=-6;
-    ctx.fillText(labels[i],toX(p[0])+ox,toY(p[1])+oy);
+    if(i===0)ox=-14,oy=14;else if(i===1)ox=12,oy=14;
+    else if(i===2)ox=12,oy=-4;else ox=-14,oy=-4;
+    ctx.fillText(labels[i]+'('+(p[0]).toFixed(1)+','+p[1]+')',toX(p[0])+ox,toY(p[1])+oy);
   });
 
   // Shaded intersection
-  const rect=rectPoly();
-  const inter=clipPolygon(para,rect);
+  const inter=clipPolygon(para,rectPoly());
   if(inter.length>=3){
-    ctx.fillStyle='rgba(74,222,128,.25)';ctx.strokeStyle='rgba(74,222,128,.8)';ctx.lineWidth=3;
+    ctx.fillStyle='rgba(74,222,128,.3)';ctx.strokeStyle='rgba(74,222,128,.8)';ctx.lineWidth=3;
     ctx.beginPath();ctx.moveTo(toX(inter[0][0]),toY(inter[0][1]));
     for(let i=1;i<inter.length;i++)ctx.lineTo(toX(inter[i][0]),toY(inter[i][1]));
     ctx.closePath();ctx.fill();ctx.stroke();
 
-    // Fill with pattern
-    ctx.fillStyle='rgba(74,222,128,.15)';
     const area=computeS(x);
-    ctx.fillStyle='#4ade80';ctx.font='bold 16px Inter,Noto Sans SC';ctx.textAlign='center';
-    const cx=inter.reduce((s,p)=>s+p[0],0)/inter.length;
-    const cy=inter.reduce((s,p)=>s+p[1],0)/inter.length;
-    ctx.fillText(`S=${area.toFixed(2)}m²`,toX(cx),toY(cy));
+    if(area>0.01){
+      ctx.fillStyle='#4ade80';ctx.font='bold 14px Inter,Noto Sans SC';ctx.textAlign='center';
+      const cx=inter.reduce((s,p)=>s+p[0],0)/inter.length;
+      const cy=inter.reduce((s,p)=>s+p[1],0)/inter.length;
+      ctx.fillText('S='+area.toFixed(2)+'m²',toX(cx),toY(cy));
+    }
   }
 
-  // Dimension lines
-  ctx.strokeStyle='rgba(124,138,160,.4)';ctx.lineWidth=1;ctx.setLineDash([2,4]);
-  // AB dimension
-  ctx.beginPath();ctx.moveTo(toX(0),toY(0)+24);ctx.lineTo(toX(3),toY(0)+24);ctx.stroke();
-  ctx.fillStyle='#7c8aa0';ctx.font='12px Inter,Noto Sans SC';ctx.fillText('3m',toX(1.5),toY(0)+40);
-  // BC dimension
-  ctx.beginPath();ctx.moveTo(toX(3)+24,toY(0));ctx.lineTo(toX(3)+24,toY(2.5));ctx.stroke();
-  ctx.fillText('2.5m',toX(3)+40,toY(1.25));
-  // x distance
-  ctx.strokeStyle='rgba(250,204,21,.5)';
-  ctx.beginPath();ctx.moveTo(toX(0),toY(0)-28);ctx.lineTo(toX(x),toY(0)-28);ctx.stroke();
-  ctx.fillStyle='#facc15';ctx.fillText(`x=${x.toFixed(1)}`,toX(x/2),toY(0)-36);
+  // Dimension: AB (rectangle width)
+  ctx.strokeStyle='rgba(124,138,160,.35)';ctx.lineWidth=1;ctx.setLineDash([2,4]);
+  ctx.beginPath();ctx.moveTo(toX(0),toY(0)+22);ctx.lineTo(toX(3),toY(0)+22);ctx.stroke();
+  ctx.fillStyle='#7c8aa0';ctx.font='11px Inter,Noto Sans SC';ctx.fillText('AB=3m',toX(1.5),toY(0)+38);
+
+  // Dimension: BC (rectangle height)
+  ctx.beginPath();ctx.moveTo(toX(3)+22,toY(0));ctx.lineTo(toX(3)+22,toY(2.5));ctx.stroke();
+  ctx.fillText('BC=2.5m',toX(3)+38,toY(1.25));
+
+  // Dimension: MN (parallelogram base)
+  ctx.strokeStyle='rgba(250,204,21,.35)';
+  const mxP=para[0][0],nxP=para[1][0];
+  ctx.beginPath();ctx.moveTo(toX(mxP),toY(0)-16);ctx.lineTo(toX(nxP),toY(0)-16);ctx.stroke();
+  ctx.fillStyle='#facc15';ctx.fillText('MN=3m',toX((mxP+nxP)/2),toY(0)-22);
+
+  // x arrow from A(0,0) to current offset reference
+  if(x>-2.5&&x<5.5){
+    ctx.strokeStyle='rgba(250,204,21,.5)';
+    ctx.beginPath();ctx.moveTo(toX(0),toY(-0.3));ctx.lineTo(toX(x),toY(-0.3));ctx.stroke();
+    ctx.fillText('x='+x.toFixed(1),toX(x/2),toY(-0.3)-8);
+  }
   ctx.setLineDash([]);
+
+  // Label axes
+  ctx.fillStyle='#7c8aa0';ctx.font='10px Inter,Noto Sans SC';ctx.textAlign='right';
+  ctx.fillText('y=0 (AB线)',mx-6,toY(0)+4);
 }
 
 // Slider & UI
 const slider=document.getElementById('xSlider');
-const xVal=document.getElementById('xVal');
-const sVal=document.getElementById('sVal');
+const xVal2=document.getElementById('xVal2');
+const sVal2=document.getElementById('sVal2');
 const statMax=document.getElementById('statMax');
 const statInit=document.getElementById('statInit');
 const statFig3=document.getElementById('statFig3');
-const btnInit=document.getElementById('btnInit');
-const btnFig3=document.getElementById('btnFig3');
 
 function update(x){
   const S=computeS(x);
   slider.value=x;
-  xVal.textContent=x.toFixed(2);
-  sVal.textContent=S.toFixed(2);
-  sVal.style.color=S>=4.9?'#facc15':S>=3?'#e8edf5':'#f87171';
+  xVal2.textContent=x.toFixed(2)+' m';
+  sVal2.textContent=S.toFixed(2)+' m²';
+  sVal2.style.color=S>=4.9?'#facc15':S>=2?'#4ade80':'#f87171';
   draw(x);
 }
 
 slider.addEventListener('input',()=>update(parseFloat(slider.value)));
-btnInit.addEventListener('click',()=>update(0));
-btnFig3.addEventListener('click',()=>update(3));
+document.getElementById('btnInit').addEventListener('click',()=>update(0));
+document.getElementById('btnFig3').addEventListener('click',()=>update(3));
+document.getElementById('btnLeft').addEventListener('click',()=>update(-2.3));
+document.getElementById('btnRight').addEventListener('click',()=>update(5.3));
 
 // Stats
 statMax.textContent='5.00';
@@ -459,18 +512,18 @@ statFig3.textContent=computeS(3).toFixed(2);
 // Init
 update(0);
 
-// Animate to max when slide becomes active
+// Auto-animate when slide becomes active
 const s3=document.getElementById('s3');
 let animated=false;
 const obs=new MutationObserver(()=>{
   if(s3.classList.contains('on')&&!animated){
     animated=true;
-    let t=0;const dur=2000;
+    let t=0;const dur=3000;
     function anim(){
       t+=16;const p=Math.min(t/dur,1);
-      // Ease in-out: x goes 0→1→0 for a full demo
-      const ease=Math.sin(p*Math.PI*2)*0.5+0.5;
-      const xVal=ease*3;
+      // Full sweep: x from -2 to 5 and back
+      const ease=p<0.5?p*2:(1-p)*2;
+      const xVal=-2+ease*7;
       slider.value=xVal;update(xVal);
       if(p<1)requestAnimationFrame(anim);
       else{update(1);slider.value=1}
