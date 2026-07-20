@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>计算机语言发展史 · 从电子管到AI时代</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ═════ ROOT ═════ */
+:root {
+  --bg: #0a0e17; --surface: #111827; --surface2: #1a2332;
+  --text: #e2e8f0; --muted: #7c8aa0;
+  --accent: #38bdf8; --accent2: #2dd4bf; --amber: #f59e0b;
+  --green: #4ade80; --red: #f87171;
+  --glass: rgba(255,255,255,.03); --glass-border: rgba(255,255,255,.06);
+}
+* { margin:0; padding:0; box-sizing:border-box }
+body {
+  font-family:'Inter','Noto Sans SC',sans-serif;
+  background:var(--bg); color:var(--text);
+  overflow:hidden; -webkit-font-smoothing:antialiased;
+}
+
+/* ═════ SLIDE ENGINE ═════ */
+.slide {
+  position:fixed; inset:0;
+  overflow-y:auto; overflow-x:hidden;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:3rem 2rem;
+  opacity:0; pointer-events:none; transition:opacity .4s ease;
+  background:var(--bg);
+  scrollbar-width:thin; scrollbar-color:var(--surface2) transparent;
+}
+.slide.on { opacity:1; pointer-events:auto }
+.slide.surface { background:var(--surface) }
+.slide > .wrap { width:100%; max-width:1050px }
+
+/* ═════ NAV ═════ */
+#dots { position:fixed; right:18px; top:50%; transform:translateY(-50%); z-index:999;
+  display:flex; flex-direction:column; gap:8px }
+#dots span { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.15);
+  cursor:pointer; transition:all .3s }
+#dots span.on { background:var(--accent); box-shadow:0 0 10px rgba(56,189,248,.4); width:20px; border-radius:4px }
+#bar { position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--accent),var(--accent2));
+  z-index:999; transition:width .35s ease; border-radius:0 2px 2px 0 }
+
+/* ═════ HERO SLIDE ═════ */
+.hero-bg { position:absolute; inset:0;
+  background:radial-gradient(ellipse 80% 60% at 30% 50%, rgba(56,189,248,.08) 0%, transparent 60%),
+             radial-gradient(ellipse 60% 80% at 70% 40%, rgba(45,212,191,.05) 0%, transparent 60%),
+             linear-gradient(135deg,#0c4a6e 0%,#0f172a 50%,#1e1b4b 100%); }
+.hero-grid { position:absolute; inset:0; opacity:.025;
+  background-image:linear-gradient(rgba(255,255,255,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.3) 1px,transparent 1px);
+  background-size:80px 80px }
+.hero-content { position:relative; z-index:2; text-align:center }
+.hero-badge { display:inline-block; padding:5px 16px; border-radius:99px;
+  border:1px solid rgba(56,189,248,.25); font-size:.75rem; letter-spacing:.2em;
+  color:var(--accent); margin-bottom:1.8rem; font-weight:500 }
+.hero-title { font-family:'Noto Serif SC',Georgia,serif;
+  font-size:clamp(2rem,6vw,4.8rem); font-weight:900; line-height:1.15;
+  background:linear-gradient(180deg,#fff 0%,#94a3b8 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:.3em }
+.hero-title em { font-style:normal; display:block; font-size:.42em; font-weight:500;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.hero-stats { display:flex; gap:2.5rem; justify-content:center; margin-top:2rem; flex-wrap:wrap }
+.hero-stat { text-align:center }
+.hero-stat .val { font-size:2.2rem; font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.hero-stat .lbl { font-size:.72rem; color:var(--muted); margin-top:4px }
+.hero-scroll { color:var(--muted); font-size:.78rem; margin-top:2rem }
+
+/* ═════ TYPOGRAPHY ═════ */
+.label { font-size:.72rem; letter-spacing:.22em; color:var(--accent); text-transform:uppercase; margin-bottom:.8rem; font-weight:600 }
+.title { font-family:'Noto Serif SC',Georgia,serif; font-size:clamp(1.6rem,3.5vw,2.4rem); font-weight:700; margin-bottom:.5rem }
+.sub { color:var(--muted); font-size:.95rem; max-width:600px; margin-bottom:2rem }
+.p { color:var(--muted); line-height:1.9; font-size:.9rem }
+.p strong { color:#fff }
+
+/* ═════ CARDS ═════ */
+.grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.2rem }
+.grid3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1rem }
+.grid4 { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:.9rem }
+.card { background:var(--glass); border:1px solid var(--glass-border); border-radius:14px; padding:1.8rem }
+.card h3 { font-size:1.05rem; margin-bottom:.4rem; font-weight:600 }
+.card .p { font-size:.84rem; line-height:1.65 }
+.card-top { border-top:3px solid var(--accent) }
+.card-left { border-left:3px solid var(--accent) }
+.card-stat { margin-top:1rem; padding-top:.8rem; border-top:1px solid var(--glass-border) }
+.card-stat .big { font-size:1.8rem; font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.card-stat .tiny { font-size:.68rem; color:var(--muted) }
+
+/* ═════ STAT STRIP ═════ */
+.stat-strip { display:flex; justify-content:center; gap:2.5rem; flex-wrap:wrap;
+  padding:2rem; background:var(--surface); border-radius:14px; margin:1.5rem 0 }
+.stat-item { text-align:center }
+.stat-item .num { font-size:2.4rem; font-weight:900;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.stat-item .num.g { background:linear-gradient(135deg,var(--green),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.stat-item .num.o { background:linear-gradient(135deg,var(--amber),var(--red)); -webkit-background-clip:text; -webkit-text-fill-color:transparent }
+.stat-item .lbl { font-size:.75rem; color:var(--muted); margin-top:4px }
+
+/* ═════ BARS ═════ */
+.bar-chart { display:flex; flex-direction:column; gap:10px; margin:1.5rem 0 }
+.bar-row { display:flex; align-items:center; gap:12px }
+.bar-label { width:160px; text-align:right; font-size:.8rem; color:var(--muted); flex-shrink:0 }
+.bar-track { flex:1; height:26px; background:var(--surface2); border-radius:6px; overflow:hidden }
+.bar-fill { height:100%; border-radius:6px; transition:width 1.5s ease }
+.bar-val { width:80px; font-size:.78rem; font-weight:600; flex-shrink:0; font-variant-numeric:tabular-nums }
+
+/* ═════ TABLE ═════ */
+.tbl-wrap { overflow-x:auto; margin:1.2rem 0; border-radius:10px; border:1px solid var(--glass-border) }
+.tbl { width:100%; border-collapse:collapse; font-size:.84rem }
+.tbl th { background:var(--surface2); color:var(--accent); padding:11px 16px; text-align:left; font-weight:600; font-size:.75rem; letter-spacing:.04em; text-transform:uppercase }
+.tbl td { padding:10px 16px; border-bottom:1px solid var(--glass-border); color:var(--text) }
+.tbl tr:last-child td { border-bottom:none }
+
+/* ═════ TWO COLUMN ═════ */
+.col2 { display:grid; grid-template-columns:1fr 1fr; gap:2.5rem; align-items:center }
+@media(max-width:768px) { .col2{grid-template-columns:1fr} }
+
+/* ═════ TIER ═════ */
+.tier-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--glass-border); font-size:.84rem }
+.tier-tag { padding:3px 10px; border-radius:4px; font-size:.68rem; font-weight:700; color:#000; min-width:36px; text-align:center }
+.tier-row:last-child { border-bottom:none }
+
+/* ═════ ADVANTAGES ═════ */
+.adv-row { display:flex; align-items:center; gap:16px; background:var(--glass); border:1px solid var(--glass-border);
+  border-radius:12px; padding:1.2rem 1.6rem; margin-bottom:.7rem }
+.adv-num { width:30px; height:30px; border-radius:6px; background:var(--green);
+  display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:#000; flex-shrink:0 }
+.adv-text { font-size:.95rem }
+
+/* ═════ OUTRO ═════ */
+.outro-grid { display:grid; grid-template-columns:1fr 1px 1fr; gap:2rem; align-items:start }
+.outro-col h3 { color:var(--amber); margin-bottom:1rem; font-size:1.1rem }
+.outro-divider { background:rgba(100,116,139,.2); align-self:stretch }
+.outro-col .p { line-height:2; font-size:.84rem }
+
+/* ═════ FOOTER ═════ */
+.foot { text-align:center; color:var(--muted); font-size:.8rem; padding:4rem 0 2rem }
+.foot strong { color:var(--accent) }
+
+/* ═════ TIMELINE (custom) ═════ */
+.timeline { position:relative; padding-left:24px; border-left:2px solid var(--surface2); margin:1rem 0 }
+.tl-item { margin-bottom:1.2rem; position:relative }
+.tl-item::before { content:''; position:absolute; left:-31px; top:6px; width:10px; height:10px; border-radius:50%; background:var(--accent); border:2px solid var(--bg) }
+.tl-year { font-size:.75rem; color:var(--accent); font-weight:700; letter-spacing:.04em }
+.tl-text { font-size:.84rem; color:var(--text); margin-top:2px }
+.tl-sub { font-size:.76rem; color:var(--muted) }
+
+/* ═════ GEN TAG ═════ */
+.gen-tag { display:inline-block; padding:4px 12px; border-radius:6px; font-size:.7rem; font-weight:700; margin-right:8px }
+.gen-red { background:rgba(248,113,113,.15); color:var(--red) }
+.gen-orange { background:rgba(245,158,11,.15); color:var(--amber) }
+.gen-yellow { background:rgba(250,204,21,.15); color:#facc15 }
+.gen-green { background:rgba(74,222,128,.15); color:var(--green) }
+.gen-blue { background:rgba(56,189,248,.15); color:var(--accent) }
+</style>
+</head>
+<body>
+
+<div id="bar"></div><div id="dots"></div>
+
+<!-- ═══ 1: HERO ═══ -->
+<div class="slide on" id="s1">
+  <div class="hero-bg"></div><div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">1834 → 2025 · 跨越两个世纪</div>
+    <h1 class="hero-title">计算机语言发展史<em>从电子管到 AI 时代</em></h1>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val">180+</div><div class="lbl">年编程史</div></div>
+      <div class="hero-stat"><div class="val">5</div><div class="lbl">代硬件革命</div></div>
+      <div class="hero-stat"><div class="val">50+</div><div class="lbl">重要语言</div></div>
+    </div>
+    <div class="hero-scroll">按 → 开始探索</div>
+  </div>
+</div>
+
+<!-- ═══ 2: OVERVIEW ═══ -->
+<div class="slide" id="s2">
+  <div class="wrap">
+    <div class="label">00 · 总览</div>
+    <h2 class="title">五代硬件 × 五代语言：一部波澜壮阔的进化史</h2>
+    <p class="sub">硬件是土壤，语言是生长其上的森林。每一次硬件革命，都催生了全新的编程范式。</p>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>世代</th><th>硬件</th><th>时期</th><th>代表语言</th><th>核心突破</th></tr></thead>
+        <tbody>
+          <tr><td><span class="gen-tag gen-red">0</span> 史前</td><td>机械齿轮</td><td>1834-1940</td><td>分析机指令、Plankalkül</td><td>可编程概念诞生</td></tr>
+          <tr><td><span class="gen-tag gen-orange">1</span> 电子管</td><td>真空管</td><td>1940-1956</td><td>机器语言、汇编、A-0</td><td>电子化计算</td></tr>
+          <tr><td><span class="gen-tag gen-yellow">2</span> 晶体管</td><td>分立晶体管</td><td>1956-1964</td><td>FORTRAN、LISP、COBOL</td><td>高级语言诞生</td></tr>
+          <tr><td><span class="gen-tag gen-green">3</span> IC</td><td>集成电路</td><td>1964-1971</td><td>Simula、SNOBOL、ALGOL 68</td><td>OOP 萌芽</td></tr>
+          <tr><td><span class="gen-tag gen-blue">4</span> μP</td><td>微处理器</td><td>1971-2010</td><td>C、C++、Python、Java、JS</td><td>PC + 互联网</td></tr>
+          <tr><td><span class="gen-tag" style="background:rgba(168,85,247,.15);color:#a855f7">5</span> AI</td><td>GPU/TPU/NPU</td><td>2010-今</td><td>Python生态、Mojo、Prompt</td><td>神经网络原生</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 3: PRE-HISTORY ═══ -->
+<div class="slide surface" id="s3">
+  <div class="wrap">
+    <div class="label">01 · 史前时代</div>
+    <h2 class="title">没有计算机的时代，先有了"程序"的思想</h2>
+    <p class="sub">1834-1940：齿轮与继电器奏响的前奏曲。</p>
+    <div class="grid2">
+      <div class="card card-top" style="border-top-color:var(--accent)">
+        <h3>👩‍💻 Ada Lovelace · 1843</h3>
+        <p class="p">为巴贝奇的分析机撰写第一份算法——伯努利数计算。她预见到计算机不仅能算数，还能处理符号、创作音乐。<strong>世界上第一位程序员。</strong></p>
+        <div class="card-stat"><div class="big">1843</div><div class="tiny">第一个算法诞生</div></div>
+      </div>
+      <div class="card card-top" style="border-top-color:var(--accent2)">
+        <h3>🧠 Alan Turing · 1936</h3>
+        <p class="p">发表《论可计算数》，提出通用图灵机构想——任何可计算问题都能用一台机器解决。<strong>现代计算机的理论基石。</strong></p>
+        <div class="card-stat"><div class="big">1936</div><div class="tiny">图灵机论文发表</div></div>
+      </div>
+    </div>
+    <div class="timeline" style="margin-top:1.5rem">
+      <div class="tl-item"><div class="tl-year">1854</div><div class="tl-text">乔治·布尔发表《思维定律》——布尔代数成为所有计算机的逻辑基础</div></div>
+      <div class="tl-item"><div class="tl-year">1936</div><div class="tl-text">康拉德·楚泽在柏林造出Z1机械计算机，约1945年设计出第一种高级语言 Plankalkül</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 4: 1ST GEN ═══ -->
+<div class="slide" id="s4">
+  <div class="wrap">
+    <div class="label">02 · 第一代</div>
+    <h2 class="title"><span class="gen-tag gen-red" style="font-size:1rem;vertical-align:middle">电子管</span> 1940-1956：从零和一开始</h2>
+    <p class="sub">ENIAC 重30吨，18000只真空管，功耗140kW——编程就是插拔电缆、拨动开关。</p>
+    <div class="col2">
+      <div>
+        <div class="card card-left" style="border-left-color:var(--red);margin-bottom:1rem">
+          <h3>⚡ ENIAC 编程</h3>
+          <p class="p">没有键盘，没有屏幕。六位女数学家通过重新布线插头来"写程序"。改变一次程序需要<strong>数天时间</strong>。</p>
+        </div>
+        <div class="card card-left" style="border-left-color:var(--amber)">
+          <h3>📜 机器语言 & 汇编</h3>
+          <p class="p">纯二进制指令。1949年 EDSAC 引入第一个子程序库（David Wheeler）。汇编语言让程序员终于不用只写0和1。</p>
+        </div>
+      </div>
+      <div>
+        <div class="stat-strip" style="flex-direction:column;gap:1rem;margin:0">
+          <div class="stat-item"><div class="num o">18,000</div><div class="lbl">ENIAC 真空管数量</div></div>
+          <div class="stat-item"><div class="num">1947</div><div class="lbl">贝尔实验室发明晶体管</div></div>
+          <div class="stat-item"><div class="num g">1952</div><div class="lbl">Grace Hopper 写出 A-0 编译器</div></div>
+        </div>
+      </div>
+    </div>
+    <p class="p" style="margin-top:1rem"><strong>关键人物：</strong>Grace Hopper —— 她坚信编程应该用英文而非数字，力排众议写出了世界上第一个编译器。今天所有高级语言的源头，都有她的影子。</p>
+  </div>
+</div>
+
+<!-- ═══ 5: 2ND GEN ═══ -->
+<div class="slide surface" id="s5">
+  <div class="wrap">
+    <div class="label">03 · 第二代</div>
+    <h2 class="title"><span class="gen-tag gen-orange" style="font-size:1rem;vertical-align:middle">晶体管</span> 1956-1964：高级语言的黄金时代</h2>
+    <p class="sub">晶体管取代真空管——更小、更快、更可靠。真正的高级编程语言集中爆发。</p>
+    <div class="grid3">
+      <div class="card card-top" style="border-top-color:var(--accent)">
+        <h3>🔬 FORTRAN · 1957</h3>
+        <p class="p">John Backus @ IBM。第一种广泛成功的高级语言。<strong>科学计算的王者</strong>，至今仍用于超算。引入了编译器、循环、子程序的概念。</p>
+        <div class="card-stat"><div class="big">1957</div><div class="tiny">"Formula Translation"</div></div>
+      </div>
+      <div class="card card-top" style="border-top-color:var(--accent2)">
+        <h3>🧪 LISP · 1958</h3>
+        <p class="p">John McCarthy @ MIT。第二种至今仍活着的语言。<strong>AI 研究的母语。</strong>引入递归、条件表达式、垃圾回收、符号计算。</p>
+        <div class="card-stat"><div class="big">1958</div><div class="tiny">"LISt Processing"</div></div>
+      </div>
+      <div class="card card-top" style="border-top-color:var(--green)">
+        <h3>📊 COBOL · 1959</h3>
+        <p class="p">Grace Hopper 主导。英语式语法，商业应用。<strong>90%的商业系统用了20+年。</strong>长变量名、层次化数据结构、嵌套选择。</p>
+        <div class="card-stat"><div class="big">1959</div><div class="tiny">"Common Business-Oriented Language"</div></div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:1rem">
+      <div class="card"><h3>📐 ALGOL 60</h3><p class="p">委员会设计的学术语言。提出 BNF 范式、块结构、嵌套if-then-else、递归子程序。Pascal、C、Java 的共同祖先。</p></div>
+      <div class="card"><h3>🎓 BASIC · 1964</h3><p class="p">Dartmouth 学院。为初学者设计。简单语法让编程不再高不可攀。Bill Gates 的编程启蒙语言。</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 6: 3RD GEN ═══ -->
+<div class="slide" id="s6">
+  <div class="wrap">
+    <div class="label">04 · 第三代</div>
+    <h2 class="title"><span class="gen-tag gen-yellow" style="font-size:1rem;vertical-align:middle">集成电路</span> 1964-1971：OOP 的种子</h2>
+    <p class="sub">Jack Kilby 和 Robert Noyce 发明集成电路，计算机进入"芯片"时代。</p>
+    <div class="grid2">
+      <div class="card card-left" style="border-left-color:var(--accent)">
+        <h3>🧬 Simula · 1965</h3>
+        <p class="p">Dahl & Nygaard @ 挪威。基于 ALGOL 60。引入<strong>类、对象、继承、动态绑定</strong>——面向对象编程的诞生。这是编程思维的一次范式革命。</p>
+        <div class="card-stat"><div class="big">OOP</div><div class="tiny">面向对象编程元年</div></div>
+      </div>
+      <div class="card card-left" style="border-left-color:var(--accent2)">
+        <h3>🔧 UNIX 诞生 · 1969</h3>
+        <p class="p">Ken Thompson 和 Dennis Ritchie 在 Bell Labs 开始开发 UNIX。这为后来的 C 语言埋下了伏笔——操作系统需要一种高效的系统编程语言。</p>
+        <div class="card-stat"><div class="big">1969</div><div class="tiny">UNIX + ARPANET 同年</div></div>
+      </div>
+    </div>
+    <div class="bar-chart" style="margin-top:1.5rem">
+      <div class="bar-row"><div class="bar-label">集成电路晶体管数</div><div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--amber)"></div></div><div class="bar-val" style="color:var(--amber)">~1000</div></div>
+      <div class="bar-row"><div class="bar-label">真空管时代</div><div class="bar-track"><div class="bar-fill" style="width:0.5%;background:var(--muted)"></div></div><div class="bar-val">~1</div></div>
+    </div>
+    <p class="p" style="margin-top:.5rem"><strong>质的飞跃：</strong>一个指甲盖大小的芯片集成了<strong>上千个晶体管</strong>，电子移动距离缩短，速度飞跃。操作系统与多道程序概念开始出现。</p>
+  </div>
+</div>
+
+<!-- ═══ 7: 4TH GEN ═══ -->
+<div class="slide surface" id="s7">
+  <div class="wrap">
+    <div class="label">05 · 第四代</div>
+    <h2 class="title"><span class="gen-tag gen-green" style="font-size:1rem;vertical-align:middle">微处理器</span> 1971-1990：PC 革命</h2>
+    <p class="sub">Intel 4004 —— 2300个晶体管，12mm²，把一间屋子的计算机塞进一颗芯片。</p>
+    <div class="grid3">
+      <div class="card card-top" style="border-top-color:var(--accent)">
+        <h3>⚡ C · 1972</h3>
+        <p class="p">Dennis Ritchie @ Bell Labs。为 UNIX 而生。兼具高级语言的便利和底层内存控制能力。<strong>C++、Java、C#、Python 的共同根基。</strong></p>
+      </div>
+      <div class="card card-top" style="border-top-color:var(--accent2)">
+        <h3>🖱️ Smalltalk · 1972</h3>
+        <p class="p">Alan Kay @ Xerox PARC。完善并普及了 OOP。首创 IDE、GUI、鼠标驱动的图形界面——<strong>启发乔布斯造出 Macintosh。</strong></p>
+      </div>
+      <div class="card card-top" style="border-top-color:var(--green)">
+        <h3>🔍 Prolog · 1972</h3>
+        <p class="p">逻辑编程语言。AI、定理证明、自然语言处理的利器。1972年同一年诞生了 C、Smalltalk、Prolog——<strong>编程范式的三岔口。</strong></p>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:1rem">
+      <div class="card"><h3>🏗️ C++ · 1979</h3><p class="p">Bjarne Stroustrup。给 C 加上类、继承、多态、封装。1983年更名 C++。<strong>系统软件和游戏的王者。</strong></p></div>
+      <div class="card"><h3>📚 Pascal · 1970</h3><p class="p">Niklaus Wirth。结构化编程教学语言。整个80年代的程序员都是学 Pascal 长大的。</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 8: INTERNET ERA ═══ -->
+<div class="slide" id="s8">
+  <div class="wrap">
+    <div class="label">06 · 互联网时代</div>
+    <h2 class="title"><span class="gen-tag gen-green" style="font-size:1rem;vertical-align:middle">微处理器</span> 1990-2010：Web 改写一切</h2>
+    <p class="sub">1989年 Tim Berners-Lee 发明万维网。浏览器变成了新的"操作系统"。</p>
+    <div class="grid4">
+      <div class="card">
+        <h3>🐍 Python · 1991</h3>
+        <p class="p">Guido van Rossum。可读性至上，多范式。<strong>如今是 AI 和数据科学的第一语言。</strong></p>
+        <div class="card-stat"><div class="big">#1</div><div class="tiny">AI 时代第一语言</div></div>
+      </div>
+      <div class="card">
+        <h3>☕ Java · 1995</h3>
+        <p class="p">James Gosling @ Sun。"Write Once, Run Anywhere"。JVM 革命，企业级霸主。</p>
+        <div class="card-stat"><div class="big">30亿</div><div class="tiny">设备运行 Java</div></div>
+      </div>
+      <div class="card">
+        <h3>🌐 JavaScript · 1995</h3>
+        <p class="p">Brendan Eich 10天写出。浏览器的语言。如今全栈通吃（Node.js）。</p>
+        <div class="card-stat"><div class="big">98%</div><div class="tiny">网站使用 JS</div></div>
+      </div>
+      <div class="card">
+        <h3>🐘 PHP · 1995</h3>
+        <p class="p">服务器端脚本。Facebook、Wikipedia 的早期技术选型。Web 2.0 的基础设施。</p>
+      </div>
+    </div>
+    <div class="stat-strip" style="margin-top:1rem">
+      <div class="stat-item"><div class="num">1995</div><div class="lbl">Java + JS + PHP 同年诞生</div></div>
+      <div class="stat-item"><div class="num g">2001</div><div class="lbl">C# 随 .NET 发布</div></div>
+      <div class="stat-item"><div class="num">2009</div><div class="lbl">Go 语言 @ Google</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 9: MODERN ═══ -->
+<div class="slide surface" id="s9">
+  <div class="wrap">
+    <div class="label">07 · 现代语言</div>
+    <h2 class="title">2010-2025：安全、并发、效率的新追求</h2>
+    <p class="sub">多核、云原生、移动端——新需求催生新一代语言。</p>
+    <div class="grid2">
+      <div class="card card-top" style="border-top-color:var(--accent)">
+        <h3>🦀 Rust · 2015</h3>
+        <p class="p">Mozilla 出品。零成本抽象 + 所有权系统 = <strong>内存安全无需 GC</strong>。连续七年 Stack Overflow 最受喜爱语言。Linux 内核、Windows 内核已引入 Rust。</p>
+        <div class="card-stat"><div class="big">#1</div><div class="tiny">7年最受喜爱语言</div></div>
+      </div>
+      <div class="card card-top" style="border-top-color:var(--accent2)">
+        <h3>🍎 Swift · 2014</h3>
+        <p class="p">Apple 替代 Objective-C 的现代语言。Protocol-oriented 设计，Playground 即时反馈。iOS/macOS 开发生态的核心。</p>
+        <div class="card-stat"><div class="big">2014</div><div class="tiny">WWDC 发布即震撼</div></div>
+      </div>
+    </div>
+    <div class="grid3" style="margin-top:1rem">
+      <div class="card"><h3>🔷 TypeScript</h3><p class="p">微软出品，JS的超集。给动态语言加上类型安全。已成为大型前端项目的标配。</p></div>
+      <div class="card"><h3>🏗️ Kotlin</h3><p class="p">JetBrains 的 JVM 语言。Google 钦定 Android 首选语言。简洁、安全、与Java无缝互操作。</p></div>
+      <div class="card"><h3>🔥 Mojo</h3><p class="p">2024年 Modular 发布。Python 语法 + C 性能。专为 AI 硬件设计，<strong>可能是 AI 时代的"新 C 语言"</strong>。</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 10: HARDWARE EVOLUTION ═══ -->
+<div class="slide" id="s10">
+  <div class="wrap">
+    <div class="label">08 · 硬件演进</div>
+    <h2 class="title">从真空管到 AI 芯片：硬件的五次飞跃</h2>
+    <p class="sub">编程语言的每一次革命，都建立在硬件突破之上。</p>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>世代</th><th>开关元件</th><th>集成度</th><th>代表机器</th><th>编程方式</th></tr></thead>
+        <tbody>
+          <tr><td><span class="gen-tag gen-red">1</span></td><td>真空管</td><td>1个/元件</td><td>ENIAC (1946)</td><td>插线 + 开关</td></tr>
+          <tr><td><span class="gen-tag gen-orange">2</span></td><td>晶体管</td><td>分立体管</td><td>IBM 7090 (1959)</td><td>打孔卡 → 高级语言</td></tr>
+          <tr><td><span class="gen-tag gen-yellow">3</span></td><td>集成电路</td><td>数千/芯片</td><td>IBM System/360 (1964)</td><td>终端 + OS</td></tr>
+          <tr><td><span class="gen-tag gen-green">4</span></td><td>微处理器 VLSI</td><td>百万→亿/芯片</td><td>Intel 4004→Core i9</td><td>IDE + 可视化</td></tr>
+          <tr><td><span class="gen-tag" style="background:rgba(168,85,247,.15);color:#a855f7">5</span></td><td>GPU/TPU/NPU</td><td>万亿晶体管/集群</td><td>H100 → Ironwood</td><td>框架 + Prompt</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="bar-chart">
+      <div class="bar-row"><div class="bar-label">ENIAC (1946)</div><div class="bar-track"><div class="bar-fill" style="width:0.001%;background:var(--red)"></div></div><div class="bar-val" style="color:var(--red)">~0.05 KFLOPS</div></div>
+      <div class="bar-row"><div class="bar-label">IBM 7090 (1959)</div><div class="bar-track"><div class="bar-fill" style="width:0.005%;background:var(--amber)"></div></div><div class="bar-val" style="color:var(--amber)">~100 KFLOPS</div></div>
+      <div class="bar-row"><div class="bar-label">Cray-1 (1976)</div><div class="bar-track"><div class="bar-fill" style="width:0.1%;background:var(--green)"></div></div><div class="bar-val" style="color:var(--green)">160 MFLOPS</div></div>
+      <div class="bar-row"><div class="bar-label">Core i9 (2023)</div><div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--accent)"></div></div><div class="bar-val" style="color:var(--accent)">~1 TFLOPS</div></div>
+      <div class="bar-row"><div class="bar-label">NVIDIA H100 (2023)</div><div class="bar-track"><div class="bar-fill" style="width:65%;background:var(--accent2)"></div></div><div class="bar-val" style="color:var(--accent2)">3,958 TFLOPS</div></div>
+      <div class="bar-row"><div class="bar-label">TPU v7 Ironwood</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#a855f7"></div></div><div class="bar-val" style="color:#a855f7">42.5 EFLOPS*</div></div>
+    </div>
+    <p style="font-size:.7rem;color:var(--muted);margin-top:.2rem">* 9216芯片集群总算力。H100 为 FP8 稀疏算力。ENIAC 到 Ironwood：性能提升约 <strong>850万亿倍</strong>。</p>
+  </div>
+</div>
+
+<!-- ═══ 11: AI CHIP WAR ═══ -->
+<div class="slide surface" id="s11">
+  <div class="wrap">
+    <div class="label">09 · AI 芯片战争</div>
+    <h2 class="title">GPU vs TPU vs ASIC：算力军备竞赛</h2>
+    <p class="sub">2012年 AlexNet 用两块 GTX 580 夺冠，GPU 意外成为 AI 训练的标配。此后十年，算力竞赛全面爆发。</p>
+    <div class="grid2">
+      <div class="card card-top" style="border-top-color:var(--green)">
+        <h3>🟢 NVIDIA GPU 路线</h3>
+        <p class="p"><strong>CUDA (2006)</strong> → Tensor Core (V100/2017) → A100 (2020) → H100 (2022) → Blackwell B200 (2024)<br>从 FP32 到 FP4，精度每降一级能效翻倍。<strong>十年性能提升 1000 倍。</strong></p>
+      </div>
+      <div class="card card-top" style="border-top-color:#a855f7">
+        <h3>🟣 Google TPU 路线</h3>
+        <p class="p"><strong>TPU v1 (2015)</strong> 推理专用 → v2 支持训练，发明 bfloat16 → v4 OCS光交换 → v7 Ironwood (2025)：4614 TFLOPS，42.5 EFLOPS 集群。<strong>首次超越同代 NVIDIA。</strong></p>
+      </div>
+    </div>
+    <div class="stat-strip" style="margin-top:1rem">
+      <div class="stat-item"><div class="num g">1000×</div><div class="lbl">GPU 十年性能提升</div></div>
+      <div class="stat-item"><div class="num">42.5</div><div class="lbl">Ironwood 集群 EFLOPS</div></div>
+      <div class="stat-item"><div class="num o">500亿</div><div class="lbl">Anthropic TPU 订单</div></div>
+    </div>
+    <div class="grid3" style="margin-top:1rem">
+      <div class="card"><h3>🇨🇳 华为昇腾</h3><p class="p">达芬奇架构，训推一体。2025年与 DeepSeek 深度适配，FP4 原生对齐。</p></div>
+      <div class="card"><h3>🧇 Cerebras WSE</h3><p class="p">整片晶圆做一颗芯片，片上海量 SRAM，极致的近存计算。</p></div>
+      <div class="card"><h3>⚡ Groq LPU</h3><p class="p">前 TPU 团队创办，确定性硬件设计，编译器时钟级调度。</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 12: AI PROGRAMMING ═══ -->
+<div class="slide" id="s12">
+  <div class="wrap">
+    <div class="label">10 · AI 时代的编程</div>
+    <h2 class="title">代码不再是唯一的语言</h2>
+    <p class="sub">从手写规则到神经网络，从编程语言到自然语言——编程范式的又一次巨变。</p>
+    <div class="grid2">
+      <div class="card card-left" style="border-left-color:var(--accent)">
+        <h3>🧠 深度学习框架</h3>
+        <p class="p"><strong>TensorFlow (2015)</strong> → <strong>PyTorch (2016)</strong> → JAX (2018)<br>框架取代了手写梯度计算。Python 凭借生态系统成为 AI 时代的"新英语"。</p>
+        <div class="card-stat"><div class="big">PyTorch</div><div class="tiny">AI 研究首选框架</div></div>
+      </div>
+      <div class="card card-left" style="border-left-color:var(--accent2)">
+        <h3>💬 大语言模型</h3>
+        <p class="p"><strong>GPT 系列 (2018-)</strong> → LLaMA → Claude → DeepSeek<br>"编程"不再是写代码——<strong>Prompt Engineering 成了新型编程语言。</strong></p>
+        <div class="card-stat"><div class="big">Prompt</div><div class="tiny">自然语言即代码</div></div>
+      </div>
+    </div>
+    <div class="grid3" style="margin-top:1rem">
+      <div class="card">
+        <h3>🔗 AI Agent</h3>
+        <p class="p">模型学会调用工具、操作终端、自主完成任务。编程从"告诉计算机怎么做"变成"告诉计算机要什么"。</p>
+      </div>
+      <div class="card">
+        <h3>🎯 编程辅助</h3>
+        <p class="p">GitHub Copilot、Cursor、Claude Code——AI 帮人写代码。<strong>2025年，50%+的新代码由 AI 生成。</strong></p>
+      </div>
+      <div class="card">
+        <h3>🔮 Mojo 语言</h3>
+        <p class="p">专为 AI 硬件设计：Python 语法 + 底层控制。可能成为连接"传统编程"和"AI 编程"的桥梁语言。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 13: FUTURE ═══ -->
+<div class="slide surface" id="s13">
+  <div class="wrap">
+    <div class="label">11 · 未来展望</div>
+    <h2 class="title">下一站在哪里？</h2>
+    <p class="sub">从齿轮到量子比特——计算机语言的进化从未停止。</p>
+    <div class="grid2">
+      <div>
+        <div class="card card-top" style="border-top-color:var(--amber);margin-bottom:1rem">
+          <h3>⚛️ 量子计算</h3>
+          <p class="p">量子比特取代经典比特。Qiskit、Cirq 等量子编程语言已经出现。<strong>量子算法需要全新的编程思维</strong>——叠加态、纠缠、量子门。</p>
+        </div>
+        <div class="card card-top" style="border-top-color:var(--green)">
+          <h3>🧬 神经形态计算</h3>
+          <p class="p">模仿人脑结构——脉冲神经网络（SNN）直接在硬件上运行。Intel Loihi 2 已有100万神经元。<strong>编程 = 设计大脑结构。</strong></p>
+        </div>
+      </div>
+      <div>
+        <div class="card card-top" style="border-top-color:var(--accent2);margin-bottom:1rem">
+          <h3>🤖 AGI 编程</h3>
+          <p class="p">通用人工智能——机器能理解并完成任何智力任务。<strong>届时"编程"或许就是对话本身。</strong>人类从"写代码的人"变成"定义目标的人"。</p>
+        </div>
+        <div class="card card-top" style="border-top-color:#a855f7">
+          <h3>🌌 存内计算</h3>
+          <p class="p">打破冯·诺依曼瓶颈——计算和存储合二为一。忆阻器、3D堆叠。能耗降低1000倍。<strong>硬件架构将再次改写编程范式。</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 14: OUTRO ═══ -->
+<div class="slide" id="s14">
+  <div class="hero-bg"></div>
+  <div class="wrap" style="position:relative;z-index:2">
+    <h2 class="title" style="font-size:clamp(1.8rem,4vw,2.6rem);margin-bottom:2rem">180年，从齿轮到智能</h2>
+    <div class="outro-grid">
+      <div class="outro-col">
+        <h3>📌 核心启示</h3>
+        <p class="p">硬件定义了语言的边界，语言拓展了人类的思维。<br><br>从 Ada 的第一份算法到 GPT 的万亿参数——<strong>不变的是人类用符号驾驭计算的渴望。</strong><br><br>每一次"编程变得更简单"，都意味着更多人能参与创造。</p>
+      </div>
+      <div class="outro-divider"></div>
+      <div class="outro-col">
+        <h3>🔮 不变的趋势</h3>
+        <p class="p">抽象层不断升高：机器码→汇编→高级语言→框架→自然语言。<br><br>但底层——从电子管到 TPU——始终在追求：<strong>更快、更小、更高效。</strong><br><br>下一个 20 年，你我也许就是"程序员"这个词被重新定义的一代。</p>
+      </div>
+    </div>
+    <div class="stat-strip" style="margin-top:2rem">
+      <div class="stat-item"><div class="num">1834→2025</div><div class="lbl">跨越191年的旅程</div></div>
+      <div class="stat-item"><div class="num g">850万亿×</div><div class="lbl">算力增长倍数</div></div>
+      <div class="stat-item"><div class="num" style="background:linear-gradient(135deg,var(--accent2),#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent">∞</div><div class="lbl">未来的可能性</div></div>
+    </div>
+    <div class="foot">谢谢观看 &nbsp;·&nbsp; 计算机语言发展史 &nbsp;·&nbsp; 2026.07</div>
+  </div>
+</div>
+
+<!-- ═══════ ENGINE ═══════ -->
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+const dotsEl = document.getElementById('dots');
+const bar = document.getElementById('bar');
+let idx = 0, lock = false;
+
+// Build dots
+for (let i = 0; i < total; i++) {
+  const d = document.createElement('span');
+  d.addEventListener('click', () => go(i));
+  dotsEl.appendChild(d);
+}
+const dots = dotsEl.querySelectorAll('span');
+
+function go(i) {
+  if (i < 0 || i >= total || lock) return;
+  lock = true;
+  slides.forEach((s, j) => { s.classList.toggle('on', j === i); if (j === i) s.scrollTop = 0; });
+  dots.forEach((d, j) => d.classList.toggle('on', j === i));
+  bar.style.width = ((i + 1) / total * 100) + '%';
+  idx = i;
+  setTimeout(() => lock = false, 400);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(idx + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(idx - 1); }
+  else if (e.key === 'Home') { e.preventDefault(); go(0); }
+  else if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+});
+
+let ty = 0;
+document.addEventListener('touchstart', e => { ty = e.touches[0].clientY }, {passive:true});
+document.addEventListener('touchend', e => {
+  const d = e.changedTouches[0].clientY - ty;
+  if (Math.abs(d) > 40) go(d > 0 ? idx - 1 : idx + 1);
+});
+
+document.addEventListener('wheel', e => {
+  if (lock) return;
+  if (e.deltaY > 20) go(idx + 1);
+  else if (e.deltaY < -20) go(idx - 1);
+}, {passive:true});
+
+// Bar chart animation
+const barObserver = new MutationObserver(() => {
+  document.querySelectorAll('.slide.on .bar-fill').forEach(b => {
+    b.style.transition = 'width 1.5s ease';
+  });
+});
+slides.forEach(s => barObserver.observe(s, {attributes:true, attributeFilter:['class']}));
+
+// Init
+go(0);
+</script>
+</body>
+</html>
